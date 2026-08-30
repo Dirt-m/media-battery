@@ -1,0 +1,67 @@
+name: android release
+
+# A tag like v1.0.0 builds the full flavor, signs it, and attaches the APK to a GitHub
+# release under that tag. Obtainium and similar installers follow the release feed.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/wrapper-validation@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: ./gradlew --no-daemon :core:test :app:assembleFullRelease
+        working-directory: android
+
+      # The keystore lives in the repository secrets as base64. Without it the job
+      # stops here rather than publishing an unsigned APK nobody can install.
+      - name: Sign
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -eu
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "KEYSTORE_BASE64 is not set; add the signing secrets before tagging a release" >&2
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          VERSION="${GITHUB_REF_NAME#v}"
+          UNSIGNED=android/app/build/outputs/apk/full/release/app-full-release-unsigned.apk
+          "$TOOLS/zipalign" -p 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
+          "$TOOLS/apksigner" sign \
+            --ks "$RUNNER_TEMP/release.jks" \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --key-pass "pass:$KEY_PASSWORD" \
+            --out "media-battery-$VERSION.apk" \
+            "$RUNNER_TEMP/aligned.apk"
+          "$TOOLS/apksigner" verify --print-certs "media-battery-$VERSION.apk"
+          rm -f "$RUNNER_TEMP/release.jks"
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOTES=android/fastlane/metadata/android/en-US/changelogs/$(grep -oP 'versionCode = \K\d+' android/app/build.gradle.kts).txt
+          if [ -f "$NOTES" ]; then
+            gh release create "$GITHUB_REF_NAME" "media-battery-$VERSION.apk" --title "$VERSION" --notes-file "$NOTES"
+          else
+            gh release create "$GITHUB_REF_NAME" "media-battery-$VERSION.apk" --title "$VERSION" --generate-notes
+          fi

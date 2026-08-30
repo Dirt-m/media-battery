@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Media Battery Sync</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="hd">
+      <div class="hd-icon">
+        <svg viewBox="0 0 96 96">
+          <rect width="96" height="96" rx="22" fill="#11151a"/>
+          <rect x="20" y="32" width="48" height="32" rx="7" fill="none" stroke="#2b3440" stroke-width="6"/>
+          <rect x="70" y="42" width="7" height="12" rx="2" fill="#2b3440"/>
+          <rect x="26" y="38" width="28" height="20" rx="3" fill="#36c06f"/>
+          <path d="M44 30 L34 50 H43 L40 66 L54 44 H45 L48 30 Z" fill="#f3f4f2"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Sync</h1>
+      </div>
+      <a class="back-link" href="options.html">Settings</a>
+    </header>
+
+    <!-- Live state up top, in its own card: dot, label, detail, and the off switch. -->
+    <section class="card status-card">
+      <span class="status-dot" id="statusDot" data-state="off"></span>
+      <div class="status-text">
+        <span class="status-label" id="statusLabel">Off</span>
+        <span class="status-detail" id="statusDetail"></span>
+      </div>
+      <button id="syncOff" class="ghost" hidden>Turn off</button>
+    </section>
+
+    <section class="card">
+      <div class="sync-block">
+        <div class="row-text">
+          <label>Your code</label>
+          <p>Enter it on your other devices to share one battery. Save a copy.</p>
+        </div>
+        <div class="sync-code-row" id="getCodeRow">
+          <button id="getCode" class="ghost">Get code</button>
+        </div>
+        <div class="sync-code-row" id="codeRow" hidden>
+          <textarea id="syncCode" class="sync-input" rows="2" readonly spellcheck="false"></textarea>
+          <button id="syncCopy" class="ghost">Copy</button>
+        </div>
+      </div>
+
+      <div class="sync-block">
+        <div class="row-text">
+          <label>Join with a code</label>
+          <p>Paste a code from another device.</p>
+        </div>
+        <div class="sync-code-row">
+          <textarea id="syncJoin" class="sync-input" rows="2" placeholder="paste code" autocomplete="off"
+                    autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+          <button id="syncJoinBtn" class="ghost">Join</button>
+        </div>
+      </div>
+
+      <details class="sync-advanced">
+        <summary>Advanced</summary>
+        <div class="sync-block">
+          <div class="row-text">
+            <label>Server</label>
+            <p>Default or self-hosted.</p>
+          </div>
+          <div class="sync-code-row">
+            <input id="syncServer" class="sync-input" type="text" autocomplete="off"
+                   autocapitalize="off" autocorrect="off" spellcheck="false" />
+            <button id="syncServerSave" class="ghost">Save</button>
+          </div>
+        </div>
+      </details>
+
+      <span id="syncMsg" class="status sync-status"></span>
+    </section>
+  </main>
+
+  <script src="sync-page.js"></script>
+</body>
+</html>

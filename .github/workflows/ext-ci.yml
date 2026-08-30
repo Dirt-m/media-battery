@@ -1,0 +1,23 @@
+name: extension
+
+on:
+  push:
+    paths-ignore:
+      - 'server/**'
+  pull_request:
+    paths-ignore:
+      - 'server/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test
+      # Golden vectors generated from sync.js pin the wire format for the Android port.
+      # A change that drifts the format fails here, not in Android CI.
+      - run: node tests/gen-interop-fixtures.js --check
+      - run: node --check background.js && node --check content.js && node --check sync.js && node --check projection.js && node --check friction.js && node --check platforms.js && node --check options.js && node --check popup.js && node --check sync-page.js

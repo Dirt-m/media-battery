@@ -1,0 +1,8 @@
+# local notes and editor or tooling state
+.*/
+!.github/
+/*.md
+!/README.md
+!/STORE-LISTING.md
+web-ext-artifacts/
+node_modules/

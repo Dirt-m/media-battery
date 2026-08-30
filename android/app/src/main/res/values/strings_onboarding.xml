@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- First run permission screen. One line per grant. -->
+<resources>
+    <string name="onboarding_heading">Media Battery</string>
+    <string name="onboarding_sub">Time in media apps drains a charge. It recharges while you are away.</string>
+
+    <string name="onboarding_required">Required</string>
+    <string name="onboarding_on">on</string>
+    <string name="onboarding_grant">Turn on</string>
+
+    <string name="onboarding_usage_title">Usage access</string>
+    <string name="onboarding_usage_why">This is how the battery knows which app is in front.</string>
+
+    <string name="onboarding_overlay_title">Display over other apps</string>
+    <string name="onboarding_overlay_why">This is how the block screen gets in front.</string>
+    <string name="onboarding_overlay_note">Without it nothing can be blocked.</string>
+
+    <string name="onboarding_notifications_title">Notifications</string>
+    <string name="onboarding_notifications_why">The charge reading lives in a notification.</string>
+
+    <string name="onboarding_accessibility_title">Accessibility</string>
+    <string name="onboarding_accessibility_why">Optional. A block lands the instant an app opens instead of up to a second later.</string>
+
+    <string name="onboarding_listener_title">Notification access</string>
+    <string name="onboarding_listener_why">Optional. Lets the battery see a tracked app playing sound, so listening with the screen off still counts. It never reads your notifications.</string>
+
+    <string name="onboarding_exempt_title">Background battery</string>
+    <string name="onboarding_exempt_why">Keeps the timekeeper alive in the background.</string>
+
+    <string name="onboarding_done">Start</string>
+</resources>

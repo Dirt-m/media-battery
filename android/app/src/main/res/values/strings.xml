@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Media Battery</string>
+
+    <!-- Gauge state labels, same wording as the extension popup. -->
+    <string name="gauge_blocked">blocked</string>
+    <string name="gauge_blocked_for">blocked for %1$s</string>
+    <string name="gauge_draining">draining (%1$s)</string>
+    <string name="gauge_another_device">another device</string>
+    <string name="gauge_full">full</string>
+    <string name="gauge_capped_by_hours">capped by your hours</string>
+    <string name="gauge_charging_paused">charging paused</string>
+    <string name="gauge_recharging">recharging</string>
+    <string name="gauge_settings">Settings</string>
+    <string name="gauge_fix">Fix</string>
+    <string name="gauge_sync">Sync</string>
+
+    <!-- Shown on the gauge when something the battery runs on is switched off. The first
+         two mean it is not working; the rest mean it is working less well. -->
+    <string name="degraded_usage">Usage access is off, so nothing is being counted.</string>
+    <string name="degraded_overlay">Display over other apps is off, so the block screen cannot appear.</string>
+    <string name="degraded_accessibility">Accessibility is off, so blocks land slower.</string>
+    <string name="degraded_listener">Notification access is off, so background listening does not drain.</string>
+    <string name="degraded_battery">Battery optimization can pause the timekeeper.</string>
+
+    <!-- The quick settings tile: the reading, and one word for what it is doing. -->
+    <string name="tile_draining">draining</string>
+    <string name="tile_recharging">recharging</string>
+    <string name="tile_blocked">blocked</string>
+
+    <!-- The accessibility service, described where the system asks the user to trust it. -->
+    <string name="accessibility_label">Media Battery blocks</string>
+    <string name="accessibility_why">Reads which app comes to the front so a block lands the instant it opens. It reads no screen content.</string>
+
+    <!-- The cover. Two stories: the battery ran out, or this app is blocked. -->
+    <string name="block_dead_title">Battery dead</string>
+    <string name="block_app_title">%1$s is blocked</string>
+    <string name="block_recharging">recharging</string>
+    <string name="block_recharging_back_in">recharging, back in %1$s</string>
+    <string name="block_charging_paused">charging is paused by your hours</string>
+    <string name="block_until">until %1$s</string>
+    <string name="block_from_settings">from your settings</string>
+    <string name="block_by_hours">by your hours</string>
+    <string name="block_action">Just %1$d more minutes</string>
+    <string name="block_gate_title">Just %1$d more minutes, I swear!</string>
+
+    <!-- The ongoing notification: the charge reading, in minutes. -->
+    <string name="notif_channel">Battery status</string>
+    <string name="notif_channel_why">The charge reading, while the battery runs.</string>
+    <string name="notif_minutes">%1$d min</string>
+    <string name="notif_draining">%1$s left, draining %2$s</string>
+    <string name="notif_recharging_left">recharging, %1$s left</string>
+    <string name="notif_recharging">recharging</string>
+    <string name="notif_blocked">blocked</string>
+    <string name="notif_blocked_for">blocked for %1$s</string>
+    <string name="notif_full">full</string>
+    <string name="notif_charging_paused">charging paused</string>
+    <string name="notif_another_device">another device</string>
+
+    <!-- The apps section of the settings page. -->
+    <string name="apps_title">Apps</string>
+    <string name="apps_search">Search apps</string>
+    <string name="apps_track">Track</string>
+    <string name="apps_untrack">Untrack</string>
+    <string name="apps_empty">No apps match.</string>
+    <string name="apps_hint">Search to track an app.</string>
+    <string name="mode_on">On</string>
+    <string name="mode_off">Off</string>
+    <string name="mode_block">Block</string>
+
+    <!-- The hours section. One card per rule: when it holds, and the one thing it does. -->
+    <string name="hours_title">Hours</string>
+    <string name="hours_why">A rule holds between two times on your clock, and may wrap midnight.</string>
+    <string name="hours_empty">No rules yet.</string>
+    <string name="hours_add">Add a rule</string>
+    <string name="hours_save">Save</string>
+    <string name="hours_to">to</string>
+    <string name="hours_remove">Remove</string>
+    <string name="hours_set">Set</string>
+    <string name="hours_cancel">Back</string>
+    <string name="hours_action_block">Block apps</string>
+    <string name="hours_action_off">No battery use</string>
+    <string name="hours_action_recharge">Slower charging</string>
+    <string name="hours_action_capacity">Lower capacity</string>
+    <string name="hours_scope_all">All apps</string>
+    <string name="hours_scope_only">Only these</string>
+    <string name="hours_scope_except">All but these</string>
+    <string name="hours_no_apps">Track an app first.</string>
+    <string name="hours_percent_value">%1$d%% speed</string>
+    <string name="hours_percent_hint">0 stops charging.</string>
+    <string name="hours_capacity_value">%1$d min cap</string>
+    <string name="hours_problem_times">A rule needs two different times.</string>
+    <string name="hours_problem_only">Pick at least one app for the \"only these\" rule.</string>
+
+    <!-- The settings page: section headings, the battery's numbers, and what is switched
+         on. -->
+    <string name="settings_title">Settings</string>
+    <string name="options_battery">Battery</string>
+    <string name="settings_back">Done</string>
+    <string name="settings_speed">Charging speed</string>
+    <string name="settings_speed_why">How much charge a full day away from tracked apps buys.</string>
+    <string name="settings_speed_value">%1$.1f h/day</string>
+    <string name="settings_capacity">Capacity</string>
+    <string name="settings_capacity_why">How much the battery holds when it is full.</string>
+    <string name="settings_minutes">%1$d min</string>
+    <string name="settings_warn">Low charge warning</string>
+    <string name="settings_warn_why">One notice before the battery runs out. Off at zero.</string>
+    <string name="settings_warn_off">Off</string>
+    <string name="settings_time_left">Time left on arrival</string>
+    <string name="settings_time_left_why">A short notice with the time left when a tracked app opens.</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_permissions">Permissions</string>
+    <string name="settings_gate_title">Confirm the change</string>
+    <string name="settings_gate_confirm">Save it</string>
+
+    <!-- The one warning before zero, in its own channel so it can be heard. -->
+    <string name="warn_channel">Low charge</string>
+    <string name="warn_channel_why">One notice before the battery runs out.</string>
+    <string name="warn_text">%1$d min left</string>
+
+    <!-- The arrival pill, the extension's corner toast. -->
+    <string name="pill_time_left">%1$d min left</string>
+
+    <!-- The home screen widget. -->
+    <string name="widget_description">The charge, on your home screen.</string>
+
+    <!-- Phones whose vendor stops background apps on its own terms. One line each, naming
+         the setting in that vendor's words. Nothing here can be read back, so nothing here
+         is ever marked done. -->
+    <string name="oem_title">Keep it running</string>
+    <string name="oem_open">Open settings</string>
+    <string name="oem_xiaomi">MIUI stops background apps. Allow autostart for Media Battery.</string>
+    <string name="oem_huawei">EMUI stops background apps. Add Media Battery to protected apps.</string>
+    <string name="oem_oppo">ColorOS stops background apps. Allow startup for Media Battery.</string>
+    <string name="oem_vivo">Funtouch stops background apps. Allow background startup for Media Battery.</string>
+    <string name="oem_samsung">One UI puts unused apps to sleep. Keep Media Battery off that list.</string>
+    <string name="oem_oneplus">OxygenOS stops background apps. Allow chained start for Media Battery.</string>
+
+    <!-- Sync setup, the same words the extension's sync page uses. Not friction gated:
+         nothing here loosens a limit, and joining is more likely to lower the charge than
+         raise it. -->
+    <string name="sync_title">Sync</string>
+    <string name="sync_back">Done</string>
+    <string name="sync_state_off">Off</string>
+    <string name="sync_state_off_detail">Each device keeps its own battery.</string>
+    <string name="sync_state_syncing">Syncing</string>
+    <string name="sync_state_synced">Synced</string>
+    <string name="sync_state_offline">Offline</string>
+    <string name="sync_state_offline_detail">Retrying.</string>
+    <string name="sync_off">Turn off</string>
+    <string name="sync_off_confirm">Turn off sync on this device? Your code stays valid on your other devices.</string>
+    <string name="sync_ago_now">just now</string>
+    <string name="sync_ago_min">%1$d min ago</string>
+    <string name="sync_ago_hour">%1$d h ago</string>
+    <string name="sync_code_label">Your code</string>
+    <string name="sync_code_why">Enter it on your other devices to share one battery. Save a copy.</string>
+    <string name="sync_get_code">Get code</string>
+    <string name="sync_copy">Copy</string>
+    <string name="sync_copied">Copied</string>
+    <string name="sync_join_label">Join with a code</string>
+    <string name="sync_join_why">Paste a code from another device.</string>
+    <string name="sync_join_hint">paste code</string>
+    <string name="sync_join">Join</string>
+    <string name="sync_join_confirm">Joining replaces this device\'s battery and settings with the shared one.</string>
+    <string name="sync_err_code">That code is not valid.</string>
+    <string name="sync_err_profile">No battery on the server for that code. Check it for typos.</string>
+    <string name="sync_err_server">Could not reach the server.</string>
+    <string name="sync_advanced">Advanced</string>
+    <string name="sync_server_label">Server</string>
+    <string name="sync_server_why">The default, or your own.</string>
+    <string name="sync_save">Save</string>
+    <string name="sync_cancel">Cancel</string>
+    <string name="sync_confirm">Confirm</string>
+</resources>

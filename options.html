@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Media Battery Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="hd">
+      <div class="hd-icon">
+        <svg viewBox="0 0 96 96">
+          <rect width="96" height="96" rx="22" fill="#11151a"/>
+          <rect x="20" y="32" width="48" height="32" rx="7" fill="none" stroke="#2b3440" stroke-width="6"/>
+          <rect x="70" y="42" width="7" height="12" rx="2" fill="#2b3440"/>
+          <rect x="26" y="38" width="28" height="20" rx="3" fill="#36c06f"/>
+          <path d="M44 30 L34 50 H43 L40 66 L54 44 H45 L48 30 Z" fill="#f3f4f2"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Media Battery</h1>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="row">
+        <div class="row-text">
+          <label>Sync</label>
+          <p>One battery across your devices. No account.</p>
+        </div>
+        <a class="ghost link-btn" href="sync.html">Open</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <div class="row-text">
+          <label for="regen">Charging speed</label>
+          <p>How much charge you regain over a day.</p>
+        </div>
+        <div class="row-input">
+          <input id="regen" type="number" min="0.5" max="24" step="0.5" />
+          <span class="unit">h/day</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-text">
+          <label for="cap">Battery capacity</label>
+          <p>The most charge you can bank at once.</p>
+        </div>
+        <div class="row-input">
+          <input id="cap" type="number" min="1" max="1440" step="1" />
+          <span class="unit">min</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-text">
+          <label for="warn">Low charge warning</label>
+          <p>Warns when the charge drops this low. 0 turns it off.</p>
+        </div>
+        <div class="row-input">
+          <input id="warn" type="number" min="0" max="1440" step="1" />
+          <span class="unit">min</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-text">
+          <label>Time left on arrival</label>
+          <p>Shows the time left for a moment when a tracked site opens.</p>
+        </div>
+        <button id="entryToast" class="mini-toggle" type="button" aria-pressed="true" title="Show the time left when a tracked site opens">Show</button>
+      </div>
+
+    </section>
+
+    <details class="card drop">
+      <summary>
+        <span class="drop-title">Tracked sites</span>
+        <svg class="drop-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none"
+             stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="drop-body">
+        <p class="drop-note">Off sites never drain or get blocked. Block shuts a site out entirely. Add your own below.</p>
+        <div id="siteRows"></div>
+        <div class="add-site">
+          <input id="customInput" type="text" placeholder="example.com" autocomplete="off"
+                 autocapitalize="off" autocorrect="off" spellcheck="false" />
+          <button id="addBtn" class="ghost">Add site</button>
+        </div>
+        <span id="customStatus" class="status"></span>
+      </div>
+    </details>
+
+    <details class="card drop">
+      <summary>
+        <span class="drop-title">Hours</span>
+        <svg class="drop-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none"
+             stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="drop-body">
+        <p class="drop-note">Rules that hold between two times, every day, on this device's clock.</p>
+        <div id="ruleRows"></div>
+        <div class="add-rule">
+          <button id="addRule" class="ghost">Add rule</button>
+        </div>
+        <span id="ruleStatus" class="status"></span>
+      </div>
+    </details>
+
+    <div class="actions">
+      <button id="save" class="primary">Save changes</button>
+      <span id="status" class="status"></span>
+    </div>
+
+    <!-- Friction gate is mounted here when saving -->
+    <div id="gate-backdrop" class="backdrop" hidden>
+      <div class="gate-card" id="gate-host" role="dialog" aria-modal="true"
+           aria-label="Confirm the change"></div>
+    </div>
+  </main>
+
+  <script src="platforms.js"></script>
+  <script src="rules.js"></script>
+  <script src="friction.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+:root {
+  --bg: #14181e;
+  --surface: #1b2027;
+  --ink: #e8eaed;
+  --muted: #9aa3ad;
+  --line: #2b323b;
+  --green: #36c06f;
+  --amber: #f0a93b;
+  --red: #ef5350;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+/* On Android the popup renders as a full-width page, so the fixed 300px body sits
+   centered on the page's own background instead of against a white edge. */
+html { background: var(--bg); }
+
+body {
+  width: 300px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.app { position: relative; padding: 12px 18px 18px; }
+
+.icon-btn {
+  position: absolute;
+  top: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.icon-btn svg { display: block; }
+.icon-btn:hover { color: var(--ink); background: #232a32; }
+.icon-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.gear { right: 12px; }
+.sync { left: 12px; }
+
+/* The sync button carries the online/offline symbol: a cloud while synced, a
+   crossed-out cloud while sync is off or unreachable. */
+.sync .cloud-on, .sync .cloud-off { display: none; }
+.app[data-sync="on"] .sync .cloud-on { display: block; }
+.app[data-sync="on"] .sync { color: var(--green); }
+.app[data-sync="off"] .sync .cloud-off { display: block; }
+.app[data-sync="offline"] .sync .cloud-off { display: block; }
+.app[data-sync="offline"] .sync { color: var(--red); }
+
+.clock { text-align: center; padding: 0 0 14px; }
+
+/* Charge color: green while comfortable, amber when low but climbing back, red when
+   low and draining or dead (blocked). */
+.time {
+  font-size: 3.4rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  color: var(--green);
+}
+.app[data-state="low"] .time { color: var(--amber); }
+.app[data-state="danger"] .time,
+.app[data-state="dead"] .time { color: var(--red); }
+
+.time-label {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+
+/* Battery gauge: a tall rounded cell plus a small positive-terminal nub. */
+.battery { display: flex; align-items: center; gap: 3px; }
+.cell {
+  position: relative;
+  flex: 1;
+  height: 60px;
+  padding: 4px;
+  background: #232a32;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+}
+.nub {
+  width: 6px;
+  height: 26px;
+  border-radius: 0 4px 4px 0;
+  background: var(--line);
+}
+.cell-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 8px;
+  background: var(--green);
+  transition: width .3s ease;
+}
+.app[data-state="low"] .cell-fill { background: var(--amber); }
+.app[data-state="danger"] .cell-fill,
+.app[data-state="dead"] .cell-fill { background: var(--red); }
+
+/* Flow icon, centered over the bar: bolt while charging, arrow while draining. */
+.flow-ic {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
+}
+.app[data-flow="charging"] .bolt { display: block; }
+.app[data-flow="draining"] .drain { display: block; }
+
+/* No host grant on a tracked site: nothing enforces there until it is restored,
+   so this reads as an error, not a notice. */
+.access {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 9px 12px;
+  background: rgba(239, 83, 80, 0.08);
+  border: 1px solid rgba(239, 83, 80, 0.35);
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.access[hidden] { display: none; }
+.access button {
+  flex: none;
+  margin-left: auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: var(--red);
+  color: #0f1115;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.access button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Android: the popup renders as a full width page, not a 300px window (a desktop
+   popup's viewport is exactly the 300px body, so this never fires there). Wider
+   gauge, finger sized buttons. */
+@media (min-width: 360px) {
+  body { width: 100%; max-width: 430px; padding: 8px 10px 4px; }
+  .app { padding: 18px 22px 26px; }
+  .icon-btn { width: 40px; height: 40px; top: 8px; }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .gear { right: 6px; }
+  .sync { left: 6px; }
+  .clock { padding: 12px 0 18px; }
+  .time { font-size: 4rem; }
+  .cell { height: 72px; }
+  .nub { height: 32px; }
+}

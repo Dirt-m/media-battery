@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "Media Battery",
+  "version": "1.7.1",
+  "description": "A battery for media sites that recharges on its own. Time on tracked platforms drains it; it refills while you're away. At empty the sites are blocked, and getting back in early takes deliberate friction. Add your own sites too.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "media-battery@milo",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
+  "permissions": ["storage", "scripting", "alarms"],
+  "optional_host_permissions": ["*://*/*"],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.reddit.com/*",
+    "*://*.instagram.com/*",
+    "*://*.tiktok.com/*",
+    "*://*.x.com/*",
+    "*://*.twitter.com/*",
+    "*://*.facebook.com/*",
+    "*://*.twitch.tv/*",
+    "*://*.linkedin.com/*",
+    "https://sb.dirt23.site/*"
+  ],
+  "background": {
+    "scripts": ["platforms.js", "rules.js", "projection.js", "sync.js", "background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://*.reddit.com/*",
+        "*://*.instagram.com/*",
+        "*://*.tiktok.com/*",
+        "*://*.x.com/*",
+        "*://*.twitter.com/*",
+        "*://*.facebook.com/*",
+        "*://*.twitch.tv/*",
+        "*://*.linkedin.com/*"
+      ],
+      "js": ["platforms.js", "rules.js", "friction.js", "content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Media Battery",
+    "default_icon": "icons/icon.svg"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  }
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app's card, in a shape a widget can wear. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/sb_surface" />
+    <stroke android:width="1dp" android:color="@color/sb_line" />
+    <corners android:radius="16dp" />
+</shape>

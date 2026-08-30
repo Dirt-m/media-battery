@@ -1,0 +1,15 @@
+Nobody plans to lose an hour to a feed. You open it to check one thing and look up at midnight. The usual fix is a blocker, and the usual end of that story is switching the blocker off on day three because it got in the way of something real.
+
+Media Battery is a battery instead of a wall. Time in the apps you pick drains it, time away refills it, and when it runs empty those apps are covered for ten minutes. Nothing is ever forbidden. It just stops being free, and a charge counting down in the notification shade makes the spending visible while it happens instead of afterwards.
+
+It only counts time you are actually in an app. A tracked app sitting in the background does not drain, a phone in your pocket does not drain, and sound playing with the screen off does, because that is still watching.
+
+You can cheat, but not on autopilot. Getting back in early means clearing a small task that changes on every attempt (retyping a phrase with pasting disabled, arithmetic, sorting numbers, counting letters) and writing a line on why you are back. Wrong answer, fresh set. The toll is small and always the same, so it never turns into a reason to switch the app off. Loosening a setting walks through the same gate, so there is no side door either.
+
+Hours shape the day. A window can cover apps outright, exempt them from the battery, slow or stop the charging, or lower the capacity, and a covered app can still be opened for five minutes through the same gate.
+
+One optional code shares a single battery with the Media Battery extension for Firefox. It is end to end encrypted with no account, the server only ever holds ciphertext, and the lower charge always wins, so the laptop can never refill what the phone spent. The sync server is one small Go binary and you can run your own.
+
+Usage access is the only permission the app cannot work without: it is what names the app you are in. Display over other apps is what lets the cover appear at all while nothing of ours is on screen. Notification access lets the battery hear a tracked app playing sound; it reads no notifications. The sideload build also ships an accessibility service that makes a cover land the instant an app opens, reading one event type and no screen content.
+
+It cannot stop someone who has decided to get around it. It is an app on your own phone and you can uninstall it in ten seconds. What it stops is the version of you that never decided anything, the one that opens a feed out of muscle memory and looks up an hour later.

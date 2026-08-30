@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Friction gate copy, ported from friction.js. Question labels are not here: they
+     come from the core task pool. -->
+<resources>
+    <string name="friction_why_label">Why are you coming back?</string>
+    <string name="friction_why_placeholder">At least %1$d words</string>
+    <!-- Live word count under the why box, before and after the minimum is met. -->
+    <string name="friction_why_count_short">%1$d/%2$d words</string>
+    <string name="friction_why_count_met">%1$d words</string>
+    <!-- Answers were right, the why box was too short. The answers are kept. -->
+    <string name="friction_status_why_short">Say a bit more (at least %1$d words).</string>
+    <!-- An answer was wrong. The whole set is redrawn. -->
+    <string name="friction_status_wrong">Not quite. Here\'s a fresh set.</string>
+    <string name="friction_cancel">Back</string>
+</resources>

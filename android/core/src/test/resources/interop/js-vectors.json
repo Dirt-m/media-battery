@@ -1,0 +1,218 @@
+{
+  "codes": [
+    {
+      "codeBytesHex": "00000000000000000000000000000000",
+      "code": "00000000000000000000000000",
+      "formatted": "0000 0000 0000 0000 0000 0000 00",
+      "routingId": "e5bb4fbc029bfafe1cec53c2f3adb0b8",
+      "authToken": "duMPNLB5meje8X_mJRnrwMTMFuIWxnLDiKNuwzBdQ0o"
+    },
+    {
+      "codeBytesHex": "ffffffffffffffffffffffffffffffff",
+      "code": "ZZZZZZZZZZZZZZZZZZZZZZZZZW",
+      "formatted": "ZZZZ ZZZZ ZZZZ ZZZZ ZZZZ ZZZZ ZW",
+      "routingId": "c145bd18681cc6f9a058c8844466462a",
+      "authToken": "jmAUISJX-88MLh01RTrs6EsvCwZr6EEqNLi-oinprh4"
+    },
+    {
+      "codeBytesHex": "000102030405060708090a0b0c0d0e0f",
+      "code": "000G40R40M30E209185GR38E1W",
+      "formatted": "000G 40R4 0M30 E209 185G R38E 1W",
+      "routingId": "12add2ff340692bc1b4ab7a8e1142a39",
+      "authToken": "WLF_z3YLrROWYQqOo7NrepjzsxxtCjORlKVtLqeGvOk"
+    },
+    {
+      "codeBytesHex": "9f1c3b7e2a5d48c60f9e13a7b5d2c840",
+      "code": "KWE3PZHABN4CC3WY2EKVBMP880",
+      "formatted": "KWE3 PZHA BN4C C3WY 2EKV BMP8 80",
+      "routingId": "b6347c46cdd1a19b32b0602191f41e7c",
+      "authToken": "-IWtDQX2w2Uz3auLUdtqKdSEUwMPoPirxmGNi0CqjlE"
+    },
+    {
+      "codeBytesHex": "3d5a90c4e7112f86bb04d9773ce1a258",
+      "code": "7ND91H7724QRDER4V5VKSRD2B0",
+      "formatted": "7ND9 1H77 24QR DER4 V5VK SRD2 B0",
+      "routingId": "c1e05269e4ee1c93663416fc476074ba",
+      "authToken": "6c6VnghQOjgmfHb7gygNSORXPBsi76YcN_xLqZ32eII"
+    }
+  ],
+  "blobs": [
+    {
+      "codeBytesHex": "000102030405060708090a0b0c0d0e0f",
+      "code": "000G40R40M30E209185GR38E1W",
+      "doc": "charge",
+      "ivHex": "000102030405060708090a0b",
+      "plaintext": "{\"charge\":1234.5,\"asOf\":1735689600000,\"draining\":true,\"depleted\":false,\"depletedAt\":null,\"writer\":\"a1b2c3d4\"}",
+      "blobB64": "AAECAwQFBgcICQoLeap63ynw1wQVqio5ufVBLjiEcEeYmny5bLA7AQ6NFp1nF6AqyxJddf0leSgWW9WhT3xoVRldmDyDFxsGr8OaycIpovoiGFz6qztBKItJSE6vlkYPq/OWZECDZUGj1pXz6jZnFew7LM7aQdKZGYp1Y9H997DnwguQVA+m4ls="
+    },
+    {
+      "codeBytesHex": "000102030405060708090a0b0c0d0e0f",
+      "code": "000G40R40M30E209185GR38E1W",
+      "doc": "settings",
+      "ivHex": "0b0a090807060504030201ff",
+      "plaintext": "{\"keys\":{\"capacity\":{\"value\":1800,\"ts\":1735689600000},\"rechargePerMin\":{\"value\":3.75,\"ts\":1735689500000},\"hideYtSidebar\":{\"value\":true,\"ts\":1735689400000},\"warnSeconds\":{\"value\":300,\"ts\":1735689300000}}}",
+      "blobB64": "CwoJCAcGBQQDAgH/v8lKTeQxIs9KSFS1qvkSU3/qBgoYZe1/XIXMMr8AXpbPSLrRMBsNr5HLvsS4Wq6vf2ByLRjuubuansTlMlqz4dURri+jeXOc9d2YgFS5RbTBuqpY+69dSpDqM4gBMHtEy8X/aWoFJmwF9bzxAwcK1lDKmoy6BVSw+PDJ4IUpU6InTABKDjT9AmMHIeHpiVK58NER0ZVYjsPI7237XvVxE0jPIokxg/nnVqgpDbSwN8LVADJW6m/ngqpptZH/zurccjwRnJnUumSuStHVRagNJCD+81xYAzYsViYi"
+    },
+    {
+      "codeBytesHex": "3d5a90c4e7112f86bb04d9773ce1a258",
+      "code": "7ND91H7724QRDER4V5VKSRD2B0",
+      "doc": "charge",
+      "ivHex": "112233445566778899aabbcc",
+      "plaintext": "{\"charge\":1234.5,\"asOf\":1735689600000,\"draining\":true,\"depleted\":false,\"depletedAt\":null,\"writer\":\"a1b2c3d4\"}",
+      "blobB64": "ESIzRFVmd4iZqrvMrSa1zUAXZktqV/PtlBawQzV3XffhdTx3XxT6BYh2jMwd6in2ZNX0ULn1zfshEce/Gc4PwmT/SdrzU5YKyXj2V697zboMne4/CAeyYysRFH3/rkz5DNcLa7h6ClNz01xXZ97O9S3+qtQW4agN4AgcReyF2YpMgpqXxEZCB1g="
+    },
+    {
+      "codeBytesHex": "3d5a90c4e7112f86bb04d9773ce1a258",
+      "code": "7ND91H7724QRDER4V5VKSRD2B0",
+      "doc": "settings",
+      "ivHex": "ccbbaa998877665544332211",
+      "plaintext": "{\"keys\":{\"capacity\":{\"value\":1800,\"ts\":1735689600000},\"rechargePerMin\":{\"value\":3.75,\"ts\":1735689500000},\"hideYtSidebar\":{\"value\":true,\"ts\":1735689400000},\"warnSeconds\":{\"value\":300,\"ts\":1735689300000}}}",
+      "blobB64": "zLuqmYh3ZlVEMyIRXQ+5PnP92lSNfimKei5ezGfG0qybLcRPaebpgeX/Olwg7/EUGq4YrgZ1yiPFPy7cYGYOIfzaOrQKVxUMf5VXIpAColLroh3/075uWO8+AS/jRXPjGD/bQfTKzVm/B84uMsAOeRPhrYSsFQRToWPBu38+VWvCL9NfuirHB+921Rb/k5/WKa1MN/v11kdyl7x9WD+iYsOiC1du7huaBaoWFpeBrjnqv0fWHZxEArAx/qZVlaaF3isAK4KLavynOXNMfNukUoKmh0tV7HFjl1tNPJHYOvmziOQa2VjV"
+    }
+  ],
+  "numbers": [
+    {
+      "bitsHex": "0000000000000000",
+      "json": "0"
+    },
+    {
+      "bitsHex": "8000000000000000",
+      "json": "0"
+    },
+    {
+      "bitsHex": "3ff0000000000000",
+      "json": "1"
+    },
+    {
+      "bitsHex": "4014000000000000",
+      "json": "5"
+    },
+    {
+      "bitsHex": "4072c00000000000",
+      "json": "300"
+    },
+    {
+      "bitsHex": "409c200000000000",
+      "json": "1800"
+    },
+    {
+      "bitsHex": "400e000000000000",
+      "json": "3.75"
+    },
+    {
+      "bitsHex": "4059200000000000",
+      "json": "100.5"
+    },
+    {
+      "bitsHex": "c029000000000000",
+      "json": "-12.5"
+    },
+    {
+      "bitsHex": "3fb999999999999a",
+      "json": "0.1"
+    },
+    {
+      "bitsHex": "3fd5555555555555",
+      "json": "0.3333333333333333"
+    },
+    {
+      "bitsHex": "3fe5555555555555",
+      "json": "0.6666666666666666"
+    },
+    {
+      "bitsHex": "3eb0c6f7a0b5ed8d",
+      "json": "0.000001"
+    },
+    {
+      "bitsHex": "3e7ad7f29abcaf48",
+      "json": "1e-7"
+    },
+    {
+      "bitsHex": "427941f297c00000",
+      "json": "1735689600000"
+    },
+    {
+      "bitsHex": "4415af1d78b58c40",
+      "json": "100000000000000000000"
+    },
+    {
+      "bitsHex": "444b1ae4d6e2ef50",
+      "json": "1e+21"
+    },
+    {
+      "bitsHex": "7fefffffffffffff",
+      "json": "1.7976931348623157e+308"
+    },
+    {
+      "bitsHex": "0000000000000001",
+      "json": "5e-324"
+    },
+    {
+      "bitsHex": "40934a0000000000",
+      "json": "1234.5"
+    },
+    {
+      "bitsHex": "3f201f31f46ed246",
+      "json": "0.000123"
+    },
+    {
+      "bitsHex": "441ac53a7e04bcda",
+      "json": "123456789012345680000"
+    }
+  ],
+  "settingsDocs": [
+    {
+      "name": "typical",
+      "entriesJson": "[{\"key\":\"capacity\",\"kind\":\"number\",\"ts\":1735689600000,\"valueJson\":\"1800\"},{\"key\":\"rechargePerMin\",\"kind\":\"number\",\"ts\":1735689500000,\"valueJson\":\"5\"},{\"key\":\"warnSeconds\",\"kind\":\"number\",\"ts\":1735689400000,\"valueJson\":\"300\"},{\"key\":\"hideYtSidebar\",\"kind\":\"boolean\",\"ts\":1735689300000,\"valueJson\":\"false\"},{\"key\":\"enabledSites\",\"kind\":\"verbatim\",\"ts\":1735689200000,\"valueJson\":\"{\\\"youtube\\\":true,\\\"instagram\\\":false,\\\"reddit\\\":\\\"block\\\",\\\"app:com.vinted\\\":\\\"block\\\"}\"},{\"key\":\"customSites\",\"kind\":\"verbatim\",\"ts\":1735689100000,\"valueJson\":\"[{\\\"id\\\":\\\"c1\\\",\\\"name\\\":\\\"Hacker News\\\",\\\"host\\\":\\\"news.ycombinator.com\\\"}]\"},{\"key\":\"hourRules\",\"kind\":\"verbatim\",\"ts\":1735689000000,\"valueJson\":\"[{\\\"id\\\":\\\"r1\\\",\\\"from\\\":\\\"22:00\\\",\\\"to\\\":\\\"07:00\\\",\\\"action\\\":\\\"block\\\",\\\"scope\\\":\\\"all\\\",\\\"sites\\\":[]},{\\\"id\\\":\\\"r2\\\",\\\"from\\\":\\\"09:00\\\",\\\"to\\\":\\\"17:00\\\",\\\"action\\\":\\\"recharge\\\",\\\"percent\\\":0}]\"}]",
+      "json": "{\"keys\":{\"capacity\":{\"value\":1800,\"ts\":1735689600000},\"rechargePerMin\":{\"value\":5,\"ts\":1735689500000},\"warnSeconds\":{\"value\":300,\"ts\":1735689400000},\"hideYtSidebar\":{\"value\":false,\"ts\":1735689300000},\"enabledSites\":{\"value\":{\"youtube\":true,\"instagram\":false,\"reddit\":\"block\",\"app:com.vinted\":\"block\"},\"ts\":1735689200000},\"customSites\":{\"value\":[{\"id\":\"c1\",\"name\":\"Hacker News\",\"host\":\"news.ycombinator.com\"}],\"ts\":1735689100000},\"hourRules\":{\"value\":[{\"id\":\"r1\",\"from\":\"22:00\",\"to\":\"07:00\",\"action\":\"block\",\"scope\":\"all\",\"sites\":[]},{\"id\":\"r2\",\"from\":\"09:00\",\"to\":\"17:00\",\"action\":\"recharge\",\"percent\":0}],\"ts\":1735689000000}}}"
+    },
+    {
+      "name": "fractional",
+      "entriesJson": "[{\"key\":\"rechargePerMin\",\"kind\":\"number\",\"ts\":1735689600000,\"valueJson\":\"3.75\"},{\"key\":\"capacity\",\"kind\":\"number\",\"ts\":1,\"valueJson\":\"1800\"},{\"key\":\"warnSeconds\",\"kind\":\"number\",\"ts\":0,\"valueJson\":\"0\"}]",
+      "json": "{\"keys\":{\"rechargePerMin\":{\"value\":3.75,\"ts\":1735689600000},\"capacity\":{\"value\":1800,\"ts\":1},\"warnSeconds\":{\"value\":0,\"ts\":0}}}"
+    },
+    {
+      "name": "foreign",
+      "entriesJson": "[{\"key\":\"capacity\",\"kind\":\"number\",\"ts\":10,\"valueJson\":\"1800\"},{\"key\":\"androidTrackedApps\",\"kind\":\"verbatim\",\"ts\":20,\"valueJson\":\"[\\\"com.example.one\\\",\\\"com.example.two\\\"]\"},{\"key\":\"someFutureFlag\",\"kind\":\"verbatim\",\"ts\":30,\"valueJson\":\"\\\"on\\\"\"}]",
+      "json": "{\"keys\":{\"capacity\":{\"value\":1800,\"ts\":10},\"androidTrackedApps\":{\"value\":[\"com.example.one\",\"com.example.two\"],\"ts\":20},\"someFutureFlag\":{\"value\":\"on\",\"ts\":30}}}"
+    }
+  ],
+  "anchorDocs": [
+    {
+      "name": "draining",
+      "anchor": {
+        "charge": 1234.5,
+        "asOf": 1735689600000,
+        "draining": true,
+        "depleted": false,
+        "depletedAt": null,
+        "writer": "a1b2c3d4"
+      },
+      "json": "{\"charge\":1234.5,\"asOf\":1735689600000,\"draining\":true,\"depleted\":false,\"depletedAt\":null,\"writer\":\"a1b2c3d4\"}"
+    },
+    {
+      "name": "depleted",
+      "anchor": {
+        "charge": 0,
+        "asOf": 1735689650000,
+        "draining": false,
+        "depleted": true,
+        "depletedAt": 1735689640123,
+        "writer": "ffeeddcc00112233"
+      },
+      "json": "{\"charge\":0,\"asOf\":1735689650000,\"draining\":false,\"depleted\":true,\"depletedAt\":1735689640123,\"writer\":\"ffeeddcc00112233\"}"
+    },
+    {
+      "name": "bare",
+      "anchor": {
+        "charge": 1800,
+        "asOf": 1735689700000,
+        "draining": false,
+        "depleted": false,
+        "depletedAt": null,
+        "writer": null
+      },
+      "json": "{\"charge\":1800,\"asOf\":1735689700000,\"draining\":false,\"depleted\":false,\"depletedAt\":null,\"writer\":null}"
+    }
+  ]
+}

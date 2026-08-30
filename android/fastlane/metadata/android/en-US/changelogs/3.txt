@@ -1,0 +1,1 @@
+First public release. A self recharging battery for the apps you pick, with a ten minute block at empty, a question gate for getting back in early, hour rules, and optional end to end encrypted sync with the Firefox extension.

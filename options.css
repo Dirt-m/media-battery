@@ -1,0 +1,357 @@
+:root {
+  --bg: #0f1115;
+  --card: #1b2027;
+  --ink: #e8eaed;
+  --muted: #9aa3ad;
+  --line: #2b323b;
+  --accent: #2fa45a;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+/* Keep the hidden attribute winning over display rules like .sync-code-row's flex. */
+[hidden] { display: none !important; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+.page { max-width: 600px; margin: 0 auto; padding: 56px 24px 64px; }
+
+.hd { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 30px; }
+.hd-icon { flex: none; width: 46px; height: 46px; }
+.hd-icon svg { width: 46px; height: 46px; display: block; }
+.hd h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -.02em; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 4px 24px;
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.row:last-of-type { border-bottom: 0; }
+
+.row-text { max-width: 62%; }
+.row-text label { display: block; font-weight: 700; font-size: 1.05rem; }
+.row-text p { margin-top: 5px; font-size: 0.88rem; line-height: 1.5; color: var(--muted); }
+.row-text b { color: var(--ink); }
+
+.row-input {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  white-space: nowrap;
+  background: #0f1318;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  padding: 0 12px 0 4px;
+  transition: border-color .15s ease;
+}
+.row-input:focus-within { border-color: var(--accent); }
+.row-input input {
+  width: 64px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: right;
+  padding: 11px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.row-input input:focus { outline: none; }
+/* Strip the useless up/down spinner arrows */
+.row-input input::-webkit-outer-spin-button,
+.row-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.row-input input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.unit { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+
+.card-head { padding: 20px 0 4px; }
+.card-head h2 { font-size: 1.05rem; font-weight: 700; }
+.card-head p { margin-top: 5px; font-size: 0.88rem; line-height: 1.5; color: var(--muted); }
+
+.site-toggle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: #0f1318;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: border-color .15s ease;
+}
+.site-toggle:hover { border-color: #3a4450; }
+.site-toggle:focus { outline: none; border-color: var(--accent); }
+
+/* Collapsible card (tracked sites) */
+.drop { padding: 0 24px; }
+.drop > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 0;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.drop > summary::-webkit-details-marker { display: none; }
+.drop-title { font-weight: 700; font-size: 1.05rem; }
+.drop-chevron { color: var(--muted); transition: transform .18s ease; flex: none; }
+.drop[open] > summary .drop-chevron { transform: rotate(180deg); }
+.drop-body { padding-bottom: 16px; border-top: 1px solid var(--line); }
+.drop-note { padding: 14px 0 2px; font-size: 0.88rem; line-height: 1.5; color: var(--muted); }
+
+/* A site row's controls: the on/off select plus an optional remove button. */
+.row-ctl { display: flex; align-items: center; gap: 8px; }
+.x-btn {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  font-size: 1.2rem;
+  line-height: 1;
+  border: 2px solid var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.x-btn:hover { color: #ef5350; border-color: #ef5350; }
+
+/* Small inline toggle (the YouTube "hide sidebar" pill). */
+.mini-toggle {
+  flex: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 2px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color .12s ease, border-color .12s ease, background .12s ease;
+}
+.mini-toggle:hover { color: var(--ink); border-color: #3a4450; }
+.mini-toggle[aria-pressed="true"] {
+  background: rgba(47, 164, 90, 0.16);
+  border-color: var(--accent);
+  color: #6fd99a;
+}
+
+/* Hour rules: two lines per rule, when + what above, the action's controls below. */
+.rule { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.rule:last-of-type { border-bottom: 0; }
+.rule-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rule-line + .rule-line { margin-top: 10px; }
+.rule-sep { font-size: 0.88rem; font-weight: 600; color: var(--muted); }
+.rule-time {
+  color-scheme: dark;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: #0f1318;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 10px;
+  transition: border-color .15s ease;
+}
+.rule-time:focus { outline: none; border-color: var(--accent); }
+.rule-action, .rule-scope { font-size: 0.95rem; padding: 9px 12px; }
+.rule .x-btn { margin-left: auto; }
+.rule-hint { font-size: 0.82rem; color: var(--muted); }
+.rule-sites { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* "All but these": a picked site is carved out of the rule, so it reads red,
+   not the green that everywhere else means picked-and-covered. */
+.rule-sites.except .mini-toggle[aria-pressed="true"] {
+  background: rgba(239, 83, 80, 0.14);
+  border-color: #ef5350;
+  color: #f08c8a;
+}
+/* The smaller inline number input a rule uses (percent, minute cap). */
+.row-input.sm input { width: 56px; font-size: 1rem; padding: 8px 6px; }
+.add-rule { padding: 16px 0 4px; }
+#ruleStatus { display: block; padding: 2px 0 0; }
+#ruleStatus:empty { display: none; }
+
+.add-site { display: flex; gap: 10px; padding: 16px 0 4px; }
+.add-site input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.98rem;
+  padding: 10px 12px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: #0f1318;
+  color: var(--ink);
+}
+.add-site input:focus { outline: none; border-color: var(--accent); }
+.add-site .ghost { flex: none; }
+#customStatus { display: block; padding: 2px 0 0; }
+#customStatus:empty { display: none; }
+
+.actions { display: flex; align-items: center; gap: 14px; margin: 24px 0 0; }
+.primary {
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--accent);
+  /* Dark ink on the green: white only reached 3.2:1 on it. Hover brightens. */
+  color: #0f1115;
+  cursor: pointer;
+}
+.primary:hover { background: #36c06f; }
+.primary:disabled { opacity: .5; cursor: default; }
+.status { font-size: 0.88rem; font-weight: 700; color: var(--muted); }
+.status.ok { color: #36c06f; }
+.status.err { color: #ef5350; }
+
+.card + .card { margin-top: 28px; }
+
+.ghost {
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 11px 18px;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.ghost:hover { border-color: #ef5350; color: #ef5350; }
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 13, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.backdrop[hidden] { display: none; }
+
+.gate-card {
+  width: 100%;
+  max-width: 460px;
+  background: #1b2027;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.5);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+/* Sync page */
+
+/* Live state card: colored dot, state word, quiet detail, off switch on the right. */
+.status-card { display: flex; align-items: center; gap: 15px; padding: 18px 24px; }
+.status-dot {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #4a5561;
+}
+.status-dot[data-state="synced"] { background: #36c06f; }
+.status-dot[data-state="syncing"] { background: #f0a93b; }
+.status-dot[data-state="offline"] { background: #ef5350; }
+.status-text { display: flex; flex-direction: column; min-width: 0; }
+.status-label { font-weight: 800; font-size: 1.1rem; letter-spacing: -.01em; }
+.status-detail { font-size: 0.85rem; color: var(--muted); }
+.status-detail:empty { display: none; }
+.status-card .ghost { margin-left: auto; flex: none; }
+
+.sync-block { padding: 20px 0 4px; border-bottom: 1px solid var(--line); }
+.sync-block:last-of-type { border-bottom: 0; }
+.sync-block .row-text { max-width: 100%; }
+
+.sync-code-row { display: flex; gap: 10px; padding: 14px 0 18px; }
+.sync-input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  padding: 10px 12px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: #0f1318;
+  color: var(--ink);
+}
+.sync-input:focus { outline: none; border-color: var(--accent); }
+/* Codes are long: as a textarea the field wraps and grows (see fit() in
+   sync-page.js) so the whole code is visible at once, never clipped. */
+textarea.sync-input {
+  resize: none;
+  overflow: hidden;
+  line-height: 1.6;
+  word-break: break-all;
+}
+.sync-code-row .ghost { flex: none; }
+/* Copy / Link / Save are not destructive: green hover, not the default red. */
+.sync-code-row .ghost:hover { border-color: var(--accent); color: #6fd99a; }
+
+.sync-status { display: block; padding: 16px 0 4px; }
+.sync-status:empty { display: none; }
+
+/* Server tucked away: most people never need it. */
+.sync-advanced { border-top: 1px solid var(--line); }
+.sync-advanced > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 16px 0;
+}
+.sync-advanced > summary::-webkit-details-marker { display: none; }
+.sync-advanced > summary::after { content: " \25BE"; }
+.sync-advanced[open] > summary { color: var(--ink); }
+.sync-advanced .sync-block { padding-top: 0; }
+
+/* The settings page's link to the sync page: a ghost button that isn't destructive. */
+.link-btn { text-decoration: none; display: inline-flex; align-items: center; flex: none; }
+.link-btn:hover { border-color: var(--accent); color: #6fd99a; }
+
+/* The sync page's way back to settings, tucked into the header. */
+.back-link {
+  margin-left: auto;
+  align-self: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 9px;
+}
+.back-link:hover { color: var(--ink); background: #232a32; }
+
+/* Small screens (the Android tab): tighter gutters, and a control that no longer
+   fits beside its text drops below it instead of squeezing. Site rows keep their
+   single line; only the rows with a description wrap. */
+@media (max-width: 480px) {
+  .page { padding: 32px 16px 48px; }
+  .card { padding: 4px 16px; }
+  .drop { padding: 0 16px; }
+  .status-card { padding: 18px 16px; }
+  .gate-card { padding: 22px 18px; }
+  .row { flex-wrap: wrap; row-gap: 10px; }
+  .row-text { max-width: none; flex: 1 1 auto; }
+}

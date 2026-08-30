@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Compose theme's palette in a form the platform can read: a widget's RemoteViews and
+     the window background cannot see Kotlin. Keep the two in step. -->
+<resources>
+    <color name="sb_bg">#14181E</color>
+    <color name="sb_surface">#1B2027</color>
+    <color name="sb_line">#2B323B</color>
+    <color name="sb_muted">#9AA3AD</color>
+    <color name="sb_accent">#2FA45A</color>
+    <color name="sb_green">#36C06F</color>
+    <color name="sb_amber">#F0A93B</color>
+    <color name="sb_red">#EF5350</color>
+</resources>
