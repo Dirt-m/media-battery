@@ -35,6 +35,33 @@ class EngineTest {
     }
 
     @Test
+    fun `a stop with sync on settles to now and pays the goodbye pad`() {
+        val r = Rig(syncOn = true) { charge = 100.0 }
+        r.engine.onEngaged("youtube")
+        r.advance(10_000)
+        r.engine.onIdle(atMs = r.clock.wall - 3_000) // noticed three seconds late
+        assertEquals(100.0 - 10.0 - Constants.GOODBYE_PAD_SECONDS, r.s.charge, 0.5)
+    }
+
+    @Test
+    fun `a stop with sync off settles to the moment it happened and pays nothing`() {
+        val r = Rig { charge = 100.0 }
+        r.engine.onEngaged("youtube")
+        r.advance(10_000)
+        r.engine.onIdle(atMs = r.clock.wall - 3_000)
+        assertEquals(93.0, r.s.charge, 0.5) // 7s drained, then 3s of recharge
+    }
+
+    @Test
+    fun `the goodbye pad never takes the charge below zero`() {
+        val r = Rig(syncOn = true) { charge = 1.0 }
+        r.engine.onEngaged("youtube")
+        r.engine.onIdle()
+        assertEquals(1.0, r.s.charge, 0.01)
+        assertFalse(r.s.depleted)
+    }
+
+    @Test
     fun `enters depletion at zero with depletedAt at the crossing tick`() {
         val r = Rig { charge = 5.0 }
         r.engine.onEngaged("youtube")

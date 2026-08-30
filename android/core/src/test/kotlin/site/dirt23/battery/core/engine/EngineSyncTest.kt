@@ -142,6 +142,36 @@ class EngineSyncTest {
     }
 
     @Test
+    fun `a rejected stopped anchor from the mirrored writer still ends the mirror`() {
+        val r = Rig { charge = 900.0 }
+        r.engine.maybeAdoptAnchor(remote(charge = 900.0, asOf = T0, draining = true))
+        r.advance(30_000)
+        r.engine.tick()
+        assertEquals(870.0, r.s.charge, 0.5)
+
+        // The writer stopped three seconds ago and says so. Its value sits above the
+        // mirror by more than the epsilon, so it is not adopted, but the mirror must end.
+        val res = r.engine.maybeAdoptAnchor(remote(charge = 873.0, asOf = T0 + 27_000, draining = false))
+        assertFalse(res.adopted)
+        assertTrue(res.overwrite)
+        assertFalse(r.s.remoteDraining)
+
+        r.advance(30_000)
+        r.engine.tick()
+        assertTrue(r.s.charge > 870.0) // recharging, not phantom draining to the lease
+    }
+
+    @Test
+    fun `an older stopped anchor does not end a newer mirror`() {
+        val r = Rig { charge = 900.0 }
+        r.engine.maybeAdoptAnchor(remote(charge = 900.0, asOf = T0, draining = true))
+        r.advance(10_000)
+        val res = r.engine.maybeAdoptAnchor(remote(charge = 950.0, asOf = T0 - 5_000, draining = false))
+        assertFalse(res.adopted)
+        assertTrue(r.s.remoteDraining)
+    }
+
+    @Test
     fun `the engaged device follows no one`() {
         val r = Rig { charge = 900.0 }
         r.engine.onEngaged("youtube")
