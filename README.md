@@ -130,3 +130,7 @@ The extension is plain JavaScript with no build step. `node --test` runs its sui
 
 `android/` is the app (see its [README](android/README.md)) and `server/` the sync
 server (Go, one binary, SQLite). Each has its own CI workflow under `.github/`.
+
+## License
+
+GPL-3.0. See [LICENSE](LICENSE).
