@@ -62,6 +62,8 @@ class BatteryEngine(
     private val store: StateStore,
     private val clock: SbClock,
     private val guardClockJumps: Boolean = true,
+    /** Whether a sync code is set. Decides if a stop pays [Constants.GOODBYE_PAD_SECONDS]. */
+    private val syncOn: () -> Boolean = { false },
 ) {
     private val lock = Any()
     private var state: BatteryState
@@ -117,9 +119,17 @@ class BatteryEngine(
         // The period that just ended belongs to the OLD engagement, so settle before
         // flipping. Clamped to what we can still account for: not before the last settle
         // (that time is spent) and not after now.
-        val at = (atMs + state.serverOffset).coerceIn(min(state.lastTickTs, now), now)
+        //
+        // A stop while sync is on is the exception: it settles to now, the moment the
+        // stopped anchor goes out, and pays the goodbye pad, so the anchor lands at or
+        // below a follower's mirror and gets adopted. See Constants.GOODBYE_PAD_SECONDS.
+        val stopping = id == null && engagedNow(now) != null && !state.depleted && syncOn()
+        val at = if (stopping) now else (atMs + state.serverOffset).coerceIn(min(state.lastTickTs, now), now)
         recompute(at)
         engagedId = id
+        if (stopping && state.charge > Constants.GOODBYE_PAD_SECONDS) {
+            state.charge -= Constants.GOODBYE_PAD_SECONDS
+        }
         recompute(now)
         store.save(state)
         return snapshotAt(now)
@@ -383,6 +393,13 @@ class BatteryEngine(
         )
         if (p.charge > state.charge + Constants.ADOPT_EPS_SECONDS) {
             val writerIsLive = a.draining && now - a.asOf < Constants.DRAIN_HORIZON_MS
+            // A newer stopped anchor while mirroring means the writer stopped. Its value
+            // is not taken (lower wins), but the mirror ends now instead of at the lease,
+            // so the phantom drain stops at the detection latency.
+            if (!a.draining && state.remoteDraining && a.asOf >= state.remoteDrainingTs) {
+                state.remoteDraining = false
+                store.save(state)
+            }
             return AdoptResult(adopted = false, overwrite = !writerIsLive)
         }
 

@@ -1,0 +1,1 @@
+Leaving a tracked app now shows up on your other devices right away instead of after a minute, and the charge stays the same on both. Costs about two seconds of charge per stop while sync is on.

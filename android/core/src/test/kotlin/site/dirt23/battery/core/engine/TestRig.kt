@@ -67,10 +67,14 @@ internal fun baseState(): BatteryState = BatteryState(
 )
 
 /** An engine on a stepped clock, plus the state it is ticking. */
-internal class Rig(guardClockJumps: Boolean = false, seed: BatteryState.() -> Unit = {}) {
+internal class Rig(
+    guardClockJumps: Boolean = false,
+    syncOn: Boolean = false,
+    seed: BatteryState.() -> Unit = {},
+) {
     val clock = FakeClock()
     val store = MemoryStateStore(baseState().apply(seed))
-    val engine = BatteryEngine(store, clock, guardClockJumps)
+    val engine = BatteryEngine(store, clock, guardClockJumps, syncOn = { syncOn })
 
     /** The live state. Tests assert on fields the snapshot deliberately leaves out. */
     val s: BatteryState get() = engine.stateForTest()

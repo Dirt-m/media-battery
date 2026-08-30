@@ -54,7 +54,8 @@ class AppGraph(private val app: Application) {
     val clock = AndroidSbClock
 
     private val store = FileStateStore(app.filesDir)
-    val engine = BatteryEngine(store, clock)
+    // syncOn is read at stop time, after every property below has been built.
+    val engine = BatteryEngine(store, clock, syncOn = { syncStore.record.value.syncCode != null })
 
     /**
      * On disk state, read once after the engine has booted from it. The engine takes whole
