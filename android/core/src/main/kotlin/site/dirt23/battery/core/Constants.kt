@@ -18,16 +18,6 @@ object Constants {
     /** Slack for sub-second projection noise when comparing a remote charge to the local one. */
     const val ADOPT_EPS_SECONDS = 2.0
 
-    /**
-     * Seconds a stop costs while sync is on. A follower mirrors this device's drain and
-     * keeps draining through the detection and push latency, so an honest stopped anchor
-     * lands a few seconds above the mirror and the extension (through 1.7.1) rejects it
-     * without ending the mirror. Settling the stop to the push moment and paying this on
-     * top puts the anchor at or below the mirror. Remove once the extension ends the
-     * mirror on a rejected stop; the phone side of that fix is already in [BatteryEngine].
-     */
-    const val GOODBYE_PAD_SECONDS = 2.0
-
     const val DEFAULT_CHARGE_SECONDS = 1800.0
     const val DEFAULT_CAPACITY_SECONDS = 1800
     const val DEFAULT_RECHARGE_PER_MIN = 5.0

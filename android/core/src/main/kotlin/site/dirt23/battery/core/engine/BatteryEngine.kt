@@ -65,8 +65,6 @@ class BatteryEngine(
     private val store: StateStore,
     private val clock: SbClock,
     private val guardClockJumps: Boolean = true,
-    /** Whether a sync code is set. Decides if a stop pays [Constants.GOODBYE_PAD_SECONDS]. */
-    private val syncOn: () -> Boolean = { false },
 ) {
     private val lock = Any()
     private var state: BatteryState
@@ -122,17 +120,9 @@ class BatteryEngine(
         // The period that just ended belongs to the OLD engagement, so settle before
         // flipping. Clamped to what we can still account for: not before the last settle
         // (that time is spent) and not after now.
-        //
-        // A stop while sync is on is the exception: it settles to now, the moment the
-        // stopped anchor goes out, and pays the goodbye pad, so the anchor lands at or
-        // below a follower's mirror and gets adopted. See Constants.GOODBYE_PAD_SECONDS.
-        val stopping = id == null && engagedNow(now) != null && !state.depleted && syncOn()
-        val at = if (stopping) now else (atMs + state.serverOffset).coerceIn(min(state.lastTickTs, now), now)
+        val at = (atMs + state.serverOffset).coerceIn(min(state.lastTickTs, now), now)
         recompute(at)
         engagedId = id
-        if (stopping && state.charge > Constants.GOODBYE_PAD_SECONDS) {
-            state.charge -= Constants.GOODBYE_PAD_SECONDS
-        }
         recompute(now)
         store.save(state)
         return snapshotAt(now)
@@ -147,8 +137,7 @@ class BatteryEngine(
      * morning came out as a dead battery). Here each step settles only up to its own
      * moment, so the gap is spent exactly as the steps describe. Nothing is engaged after
      * the last step: the live signals decide what holds now, and the stretch since the last
-     * step recharges, which can only under drain. No goodbye pad either, since no anchor
-     * goes out mid replay.
+     * step recharges, which can only under drain.
      */
     fun replay(steps: List<ReplayStep>): Snapshot = synchronized(lock) {
         guardClock()

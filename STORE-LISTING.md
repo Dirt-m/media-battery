@@ -19,6 +19,9 @@ It comes with YouTube, Reddit, Instagram, TikTok, X, Facebook, Twitch, and Linke
 
 It can't stop someone who has decided to get around it. The extension can be switched off in two clicks and its saved data edited, like any extension. What it does stop is the version of you that never decided anything, the one that opens a feed out of muscle memory and looks up an hour later.
 
+## Version 1.7.2, release notes
+With sync on, leaving a site or app on one device no longer leaves the others a little lower. The stop used to be missed on the other devices, which kept draining in step for up to a minute and a half; now it ends the moment the stop arrives. Also fixes a rare case where the phone app woke up to a dead battery after a restart and passed it on to the browser.
+
 ## Version 1.7.1, release notes
 Firefox can quietly drop a site permission (the per site toggle in the extensions panel does it without a word), and without the grant the blocking layer never loads while the popup still works, which is the worst way for a self control tool to fail. The extension now watches its grants: losing one puts a red ! on the toolbar badge and a Restore button in the popup that asks for it back. Also, loosening a setting now asks one question instead of two, the same flat toll as the unblock gate.
 

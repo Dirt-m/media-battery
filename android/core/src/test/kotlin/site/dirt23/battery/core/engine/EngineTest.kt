@@ -35,30 +35,12 @@ class EngineTest {
     }
 
     @Test
-    fun `a stop with sync on settles to now and pays the goodbye pad`() {
-        val r = Rig(syncOn = true) { charge = 100.0 }
-        r.engine.onEngaged("youtube")
-        r.advance(10_000)
-        r.engine.onIdle(atMs = r.clock.wall - 3_000) // noticed three seconds late
-        assertEquals(100.0 - 10.0 - Constants.GOODBYE_PAD_SECONDS, r.s.charge, 0.5)
-    }
-
-    @Test
-    fun `a stop with sync off settles to the moment it happened and pays nothing`() {
+    fun `a stop settles to the moment it happened`() {
         val r = Rig { charge = 100.0 }
         r.engine.onEngaged("youtube")
         r.advance(10_000)
-        r.engine.onIdle(atMs = r.clock.wall - 3_000)
+        r.engine.onIdle(atMs = r.clock.wall - 3_000) // noticed three seconds late
         assertEquals(93.0, r.s.charge, 0.5) // 7s drained, then 3s of recharge
-    }
-
-    @Test
-    fun `the goodbye pad never takes the charge below zero`() {
-        val r = Rig(syncOn = true) { charge = 1.0 }
-        r.engine.onEngaged("youtube")
-        r.engine.onIdle()
-        assertEquals(1.0, r.s.charge, 0.01)
-        assertFalse(r.s.depleted)
     }
 
     @Test
@@ -250,14 +232,6 @@ class EngineTest {
         r.engine.replay(listOf(ReplayStep("youtube", T0 + 60_000), ReplayStep(null, T0 + 11 * 60_000)))
         assertFalse(r.s.depleted)
         assertEquals(1800.0, r.s.charge, 0.5)
-    }
-
-    @Test
-    fun `a replay with sync on pays no goodbye pad`() {
-        val r = Rig(syncOn = true) { charge = 100.0 }
-        r.advance(60_000)
-        r.engine.replay(listOf(ReplayStep("youtube", T0), ReplayStep(null, T0 + 10_000)))
-        assertEquals(90.0 + 50 * (5.0 / 60), r.s.charge, 0.5)
     }
 
     @Test
