@@ -1,0 +1,1 @@
+A restart of the app no longer spends the whole gap on a tracked app you used during it. That is what emptied the battery overnight.

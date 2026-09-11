@@ -24,6 +24,9 @@ data class AdoptResult(
     val overwrite: Boolean = false,
 )
 
+/** One step of a replayed gap: who was engaged (null for nothing) from [atMs], device wall time. */
+data class ReplayStep(val id: String?, val atMs: Long)
+
 /**
  * A settings change, local or merged in from another device. Only the fields that are set
  * are applied, so an untouched setting cannot clobber another device's newer edit. Rules
@@ -133,6 +136,32 @@ class BatteryEngine(
         recompute(now)
         store.save(state)
         return snapshotAt(now)
+    }
+
+    /**
+     * Apply a gap the process slept through, reconstructed as timestamped [steps] in order.
+     *
+     * Not a loop over [onEngaged] and [onIdle]: those settle to now after the flip, which
+     * for a replay drains the first engaged step all the way to the present and clamps every
+     * later step to zero elapsed time (a ten minute evening session replayed the next
+     * morning came out as a dead battery). Here each step settles only up to its own
+     * moment, so the gap is spent exactly as the steps describe. Nothing is engaged after
+     * the last step: the live signals decide what holds now, and the stretch since the last
+     * step recharges, which can only under drain. No goodbye pad either, since no anchor
+     * goes out mid replay.
+     */
+    fun replay(steps: List<ReplayStep>): Snapshot = synchronized(lock) {
+        guardClock()
+        val now = sbNow()
+        for (step in steps) {
+            val at = (step.atMs + state.serverOffset).coerceIn(min(state.lastTickTs, now), now)
+            recompute(at)
+            engagedId = step.id
+        }
+        engagedId = null
+        recompute(now)
+        store.save(state)
+        snapshotAt(now)
     }
 
     /** Settle the charge to now and read it. Called once a second. */
