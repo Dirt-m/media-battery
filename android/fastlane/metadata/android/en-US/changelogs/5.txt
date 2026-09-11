@@ -1,1 +1,1 @@
-A restart of the app no longer spends the whole gap on a tracked app you used during it. That is what emptied the battery overnight.
+A restart of the app no longer spends the whole gap on a tracked app you used during it. That is what emptied the battery overnight. Leaving an app no longer costs two seconds of charge while sync is on; extension 1.7.2 handles the stop itself.

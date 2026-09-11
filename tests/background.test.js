@@ -167,6 +167,32 @@ test('a higher STALE draining anchor is rejected with an overwrite', () => {
   assert.equal(r.overwrite, true);
 });
 
+test('a rejected stopped anchor from the mirrored writer still ends the mirror', () => {
+  const now = Date.now();
+  reset({ charge: 900, lastTickTs: now - 30000 });
+  // Followed a writer for thirty seconds: the mirror drained this device to 870.
+  let r = B.maybeAdoptAnchor({ charge: 900, asOf: now - 30000, draining: true, writer: 'other' });
+  assert.equal(r.adopted, true);
+  assert.ok(Math.abs(B.getState().charge - 870) < 1);
+  assert.equal(B.isDraining(), true);
+  // The writer stopped three seconds ago and says so. Its value sits above the mirror
+  // by more than the epsilon, so it is not adopted, but the mirror must end.
+  r = B.maybeAdoptAnchor({ charge: 873, asOf: now - 3000, draining: false, writer: 'other' });
+  assert.equal(r.adopted, false);
+  assert.equal(r.overwrite, true);
+  assert.equal(B.getState().remoteDraining, false);
+  assert.equal(B.isDraining(), false);
+});
+
+test('an older stopped anchor does not end a newer mirror', () => {
+  const now = Date.now();
+  reset({ charge: 900, lastTickTs: now });
+  B.maybeAdoptAnchor({ charge: 900, asOf: now - 5000, draining: true, writer: 'other' });
+  const r = B.maybeAdoptAnchor({ charge: 900, asOf: now - 20000, draining: false, writer: 'other' });
+  assert.equal(r.adopted, false);
+  assert.equal(B.getState().remoteDraining, true);
+});
+
 test('the remote drain mirror lease is seeded from the anchor asOf, not from now', () => {
   const asOf = Date.now() - 10000;
   reset({ charge: 900 });

@@ -702,6 +702,17 @@ function maybeAdoptAnchor(a) {
   const now = sbNow();
   const p = projectAnchor(a, now);
   if (p.charge > state.charge + ADOPT_EPS) {
+    // A newer stopped anchor from the writer being mirrored means it stopped. Its value
+    // is not taken (lower wins: the mirror kept draining through the detection and push
+    // latency, so it sits a few seconds above), but the mirror ends now instead of at
+    // the lease, or this device would phantom drain for the rest of it and end up lower
+    // than the device that actually stopped.
+    if (!a.draining && state.remoteDraining && a.asOf >= state.remoteDrainingTs) {
+      state.remoteDraining = false;
+      recompute();
+      broadcast();
+      persist();
+    }
     return { adopted: false, overwrite: !(a.draining && now - a.asOf < DRAIN_LEASE_MS) };
   }
 
