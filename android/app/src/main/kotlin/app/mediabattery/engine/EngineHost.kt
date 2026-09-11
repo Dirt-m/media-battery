@@ -20,6 +20,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import site.dirt23.battery.core.SbClock
 import site.dirt23.battery.core.engine.BatteryEngine
+import site.dirt23.battery.core.engine.ReplayStep
 import site.dirt23.battery.core.engine.SettingsPatch
 import site.dirt23.battery.core.identity.AppCatalog
 import site.dirt23.battery.core.model.HourRule
@@ -316,10 +317,10 @@ class EngineHost(
             is EngineEvent.Replay -> {
                 // Applied silently: publishing each step would run the cover, the
                 // notification and the sync engagement hook through past states, and a
-                // replay must never push a historical anchor to the server.
-                for (t in event.transitions) {
-                    if (t.id == null) engine.onIdle(t.atMs) else engine.onEngaged(t.id, t.atMs)
-                }
+                // replay must never push a historical anchor to the server. One engine
+                // call, not a step at a time: the live transitions settle to now after
+                // each flip, which would spend the first engaged step's time to the present.
+                engine.replay(event.transitions.map { ReplayStep(it.id, it.atMs) })
                 // The live signals, not the log, decide what holds now.
                 engagedId = null
                 settle(clock.wallNow())

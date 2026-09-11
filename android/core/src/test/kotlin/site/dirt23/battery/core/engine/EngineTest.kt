@@ -233,6 +233,46 @@ class EngineTest {
         assertEquals(70.0, r.s.charge, 0.5)
     }
 
+    // --- Replayed gaps -----------------------------------------------------------------
+
+    @Test
+    fun `a replayed session spends only its own minutes`() {
+        val r = Rig { charge = 100.0 }
+        r.advance(60_000) // both steps are delivered now, a minute after they happened
+        r.engine.replay(listOf(ReplayStep("youtube", T0), ReplayStep(null, T0 + 10_000)))
+        assertEquals(90.0 + 50 * (5.0 / 60), r.s.charge, 0.5)
+    }
+
+    @Test
+    fun `a replayed evening session delivered the next morning leaves the battery alive`() {
+        val r = Rig { charge = 1800.0 }
+        r.advance(9 * 3600_000L) // the service starts nine hours later and replays the gap
+        r.engine.replay(listOf(ReplayStep("youtube", T0 + 60_000), ReplayStep(null, T0 + 11 * 60_000)))
+        assertFalse(r.s.depleted)
+        assertEquals(1800.0, r.s.charge, 0.5)
+    }
+
+    @Test
+    fun `a replay with sync on pays no goodbye pad`() {
+        val r = Rig(syncOn = true) { charge = 100.0 }
+        r.advance(60_000)
+        r.engine.replay(listOf(ReplayStep("youtube", T0), ReplayStep(null, T0 + 10_000)))
+        assertEquals(90.0 + 50 * (5.0 / 60), r.s.charge, 0.5)
+    }
+
+    @Test
+    fun `a replay whose last step is engaged recharges the tail and ends idle`() {
+        val r = Rig { charge = 100.0 }
+        r.advance(60_000)
+        r.engine.replay(listOf(ReplayStep("youtube", T0 + 50_000)))
+        // 50s idle, 10s of youtube up to now: the tail after the last step is not drained
+        // by the replay, the live signals re-engage from here.
+        assertEquals(100.0 + 60 * (5.0 / 60), r.s.charge, 0.5)
+        r.advance(10_000)
+        r.engine.tick()
+        assertEquals(100.0 + 70 * (5.0 / 60), r.s.charge, 0.5)
+    }
+
     // --- Reserve and passes -------------------------------------------------------------
 
     @Test
