@@ -19,6 +19,9 @@ It comes with YouTube, Reddit, Instagram, TikTok, X, Facebook, Twitch, and Linke
 
 It can't stop someone who has decided to get around it. The extension can be switched off in two clicks and its saved data edited, like any extension. What it does stop is the version of you that never decided anything, the one that opens a feed out of muscle memory and looks up an hour later.
 
+## Version 1.7.3, release notes
+Fixes the battery turning up empty, in the morning or at random, with the extension on Firefox for Android. Android holds a backgrounded Firefox still, and a sync reply the server sent in the evening could be read the next morning as if it had just arrived. That set the extension's clock back by the whole night, so last night's charge counted as the current one and sync carried it to every device. A reply that took longer than it possibly could no longer sets the clock. Also on the phone: a video blocked in fullscreen now leaves fullscreen, so the block is visible and the page can be left; before, the only way out was closing the app. And a tap made before the phone went to sleep no longer counts as fresh use when it wakes.
+
 ## Version 1.7.2, release notes
 With sync on, leaving a site or app on one device no longer leaves the others a little lower. The stop used to be missed on the other devices, which kept draining in step for up to a minute and a half; now it ends the moment the stop arrives. Also fixes a rare case where the phone app woke up to a dead battery after a restart and passed it on to the browser.
 

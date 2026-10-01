@@ -97,3 +97,120 @@ test('a 403 pull surfaces broken auth in the status', async () => {
   assert.equal(st.state, 'offline');
   assert.equal(st.error, 'auth');
 });
+
+// --- clock anchoring: a held response must not move the clock -----------------
+// The offset is server time minus the moment the response is handled. Android freezes a
+// backgrounded Firefox, so a response the server sent at night can be handled in the
+// morning; read then it would set the clock hours behind and last night's anchor would
+// project without its recharge. Only a round trip short enough to vouch for the reading
+// counts: the park the request asked for plus a slack.
+
+// Drives Date.now() so the test can stretch a round trip without waiting.
+function withFakeClock(fn) {
+  const real = Date.now;
+  const clock = { now: real() };
+  Date.now = () => clock.now;
+  return fn(clock).finally(() => { Date.now = real; });
+}
+
+function stampedResponse(status, serverTime, extraHeaders) {
+  return new Response(null, {
+    status,
+    headers: Object.assign({ 'X-Server-Time': String(serverTime) }, extraHeaders || {})
+  });
+}
+
+async function settleFetches(count, fetches) {
+  for (let i = 0; i < 500 && fetches.length < count; i++) await new Promise((r) => setImmediate(r));
+  for (let i = 0; i < 20; i++) await new Promise((r) => setImmediate(r));
+}
+
+test('a response held through a sleep does not move the clock', () => withFakeClock(async (clock) => {
+  const offsets = [];
+  const fetches = [];
+  globalThis.fetch = async (url) => {
+    fetches.push(url);
+    clock.now += 8 * 3600 * 1000; // the phone slept on the parked response
+    return stampedResponse(404, clock.now - 8 * 3600 * 1000 + 50);
+  };
+  globalThis.Sync.init(fakeAdapter({ setServerOffset: (ms) => offsets.push(ms) }));
+  await settleFetches(1, fetches);
+  assert.ok(fetches.length >= 1);
+  assert.deepEqual(offsets, []);
+}));
+
+test('a prompt response anchors the clock as before', () => withFakeClock(async (clock) => {
+  const offsets = [];
+  const fetches = [];
+  globalThis.fetch = async (url) => {
+    fetches.push(url);
+    clock.now += 400; // a real network round trip
+    return stampedResponse(404, clock.now + 50);
+  };
+  globalThis.Sync.init(fakeAdapter({ setServerOffset: (ms) => offsets.push(ms) }));
+  await settleFetches(1, fetches); // the charge pull, then the settings pull behind it
+  assert.ok(offsets.length >= 1);
+  assert.ok(offsets.every((o) => o === 50), String(offsets));
+}));
+
+test('a parked watch answered inside its park plus slack still anchors the clock', () => withFakeClock(async (clock) => {
+  const offsets = [];
+  const fetches = [];
+  const { WATCH_WAIT_S, TIME_SLACK_MS } = I;
+  const STRETCH = WATCH_WAIT_S * 1000 + TIME_SLACK_MS - 1000;
+  let stretched = false;
+  globalThis.fetch = async (url) => {
+    fetches.push(String(url));
+    if (!/wait=/.test(String(url))) {
+      // The first charge pull gives the watch a version to park on.
+      return /charge$/.test(String(url))
+        ? stampedResponse(200, clock.now + 50, { ETag: '"1"' })
+        : stampedResponse(404, clock.now + 50);
+    }
+    // The server parked the whole wait, then the network took a little more. One
+    // stretched round; the rounds after it run on the pace floor like any idle watch.
+    await new Promise((r) => setImmediate(r));
+    const stamp = clock.now + 50; // the server stamps when it answers
+    if (!stretched) { stretched = true; clock.now += STRETCH; }
+    return stampedResponse(304, stamp);
+  };
+  const adapter = fakeAdapter({ setServerOffset: (ms) => offsets.push(ms) });
+  globalThis.Sync.init(adapter);
+  await settleFetches(1, fetches);
+  offsets.length = 0;
+  globalThis.Sync.onActive();
+  await settleFetches(3, fetches);
+  globalThis.Sync.onIdle();
+  assert.ok(fetches.some((u) => /wait=/.test(u)), 'the watch parked');
+  assert.ok(offsets.includes(50 - STRETCH), 'the parked round anchored the clock: ' + offsets);
+}));
+
+test('a parked watch held past its park plus slack does not', () => withFakeClock(async (clock) => {
+  const offsets = [];
+  const fetches = [];
+  const { WATCH_WAIT_S, TIME_SLACK_MS } = I;
+  const STRETCH = WATCH_WAIT_S * 1000 + TIME_SLACK_MS + 1000;
+  let stretched = false;
+  globalThis.fetch = async (url) => {
+    fetches.push(String(url));
+    if (!/wait=/.test(String(url))) {
+      return /charge$/.test(String(url))
+        ? stampedResponse(200, clock.now + 50, { ETag: '"1"' })
+        : stampedResponse(404, clock.now + 50);
+    }
+    await new Promise((r) => setImmediate(r));
+    const stamp = clock.now + 50; // the server stamps when it answers
+    if (!stretched) { stretched = true; clock.now += STRETCH; }
+    return stampedResponse(304, stamp);
+  };
+  const adapter = fakeAdapter({ setServerOffset: (ms) => offsets.push(ms) });
+  globalThis.Sync.init(adapter);
+  await settleFetches(1, fetches);
+  offsets.length = 0;
+  globalThis.Sync.onActive();
+  await settleFetches(3, fetches);
+  globalThis.Sync.onIdle();
+  assert.ok(fetches.some((u) => /wait=/.test(u)), 'the watch parked');
+  // The prompt rounds around it anchor as usual; the held reading never lands.
+  assert.ok(offsets.every((o) => o === 50), 'the held reading must be dropped: ' + offsets);
+}));

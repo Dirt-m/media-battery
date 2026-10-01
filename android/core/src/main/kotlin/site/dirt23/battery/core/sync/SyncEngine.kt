@@ -446,6 +446,14 @@ class SyncEngine(
      * One HTTP round trip. Learns the server clock offset from every response, including a 304
      * (X-Server-Time is restamped after a parked watch), and returns the status, the parsed
      * ETag version, and the body where one exists.
+     *
+     * The offset is server time minus the moment the response is handled, which is only right
+     * when the response was handled as it arrived. Doze can hold a response for hours; read
+     * then, it would set this clock hours behind, and the anchor in it would project without
+     * its night of recharge, be adopted (lower wins), and get pushed to every device on the
+     * first engagement. So a reading is trusted only when the round trip was short enough to
+     * vouch for it: the park the request asked for ([parkedMs]) plus a slack for the network. A
+     * rejected reading costs nothing; the next prompt response re-anchors.
      */
     private suspend fun http(
         method: String,
@@ -453,13 +461,18 @@ class SyncEngine(
         headers: Map<String, String> = emptyMap(),
         body: ByteArray? = null,
         timeoutMs: Int = HttpReq.DEFAULT_TIMEOUT_MS,
+        parkedMs: Long = 0L,
     ): Resp {
         val h = LinkedHashMap<String, String>()
         h["Authorization"] = "Bearer " + keys().authToken
         h.putAll(headers)
+        val t0 = adapter.deviceNow()
         val r = transport.exec(HttpReq(method, serverBase() + path, h, body, timeoutMs))
-        r.header("X-Server-Time")?.trim()?.toLongOrNull()?.let {
-            adapter.setServerOffset(it - adapter.deviceNow())
+        val rtt = adapter.deviceNow() - t0
+        if (rtt <= parkedMs + TIME_SLACK_MS) {
+            r.header("X-Server-Time")?.trim()?.toLongOrNull()?.let {
+                adapter.setServerOffset(it - adapter.deviceNow())
+            }
         }
         if (r.status == 429) retryAfterMs = max(retryAfterMs, parseRetryAfter(r.header("Retry-After")))
         // A body only where the engine uses one: a 200 GET, and a 409, whose body is the
@@ -483,11 +496,13 @@ class SyncEngine(
         val headers = LinkedHashMap<String, String>()
         if (known != null) headers["If-None-Match"] = quote(known.v)
         // Nothing to park on without a version: the server has no baseline to compare to.
-        if (wait && known != null) path += "?wait=$WATCH_WAIT_S"
+        val parked = wait && known != null
+        if (parked) path += "?wait=$WATCH_WAIT_S"
 
         val r = http(
             "GET", path, headers,
             timeoutMs = if (wait) HttpReq.WATCH_TIMEOUT_MS else HttpReq.DEFAULT_TIMEOUT_MS,
+            parkedMs = if (parked) WATCH_WAIT_S * 1000L else 0L,
         )
         if (r.status == 404) { chargeVer = Ver.Absent; return }
         if (r.status == 304) { markSynced(); return } // unchanged since our version
@@ -781,6 +796,13 @@ class SyncEngine(
 
         /** Floor between watch rounds, so nothing can ever spin. */
         const val WATCH_PACE_MS = 3_000L
+
+        /**
+         * How much longer than its park a round trip may take and still vouch for the server
+         * clock it carries (see [http]). Network latency fits with room to spare; a response
+         * held through a sleep does not.
+         */
+        const val TIME_SLACK_MS = 15_000L
 
         /** Minimum gap between UI nudged pulls. */
         const val NUDGE_MS = 5_000L

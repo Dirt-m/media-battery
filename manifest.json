@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Media Battery",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "A battery for media sites that recharges on its own. Time on tracked platforms drains it; it refills while you're away. At empty the sites are blocked, and getting back in early takes deliberate friction. Add your own sites too.",
   "browser_specific_settings": {
     "gecko": {

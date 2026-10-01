@@ -1,0 +1,1 @@
+A sync reply the phone slept on no longer sets the clock back when it is read. Trusted, it put last night's charge back on every device; that is one way the battery was empty in the morning.
