@@ -23,6 +23,10 @@
   const NUDGE_MS = 5000;      // minimum gap between UI-nudged pulls (the popup polls 1/s)
   const SETTINGS_PULL_MS = 5 * 60 * 1000; // most a phone's settings edit stays unseen while the page lives
   const BACKOFF = [5000, 15000, 30000]; // retry schedule after a failed request
+  // How much longer than its park a round trip may take and still vouch for the server
+  // clock it carries (see http). Network latency fits inside this with room to spare;
+  // a frozen process does not.
+  const TIME_SLACK_MS = 15000;
 
   const enc = (s) => new TextEncoder().encode(s);
   const dec = (b) => new TextDecoder().decode(b);
@@ -179,16 +183,28 @@
 
   // One round trip. Picks up the server clock offset from every response
   // (X-Server-Time is restamped after a parked watch, so it stays fresh).
+  //
+  // The offset is server time minus the moment the response is handled, which is only
+  // right if the response was handled when it arrived. Android freezes a backgrounded
+  // Firefox: a watch the server answered at 23:00 sits in the socket until the phone is
+  // picked up at 07:30, and read then it would set this clock eight hours behind. The
+  // anchor in that response would then project without its night of recharge, lower
+  // wins would adopt it, and the first push would carry last night's charge (or death)
+  // to every device. So a reading is trusted only when the round trip was short enough
+  // to vouch for it: the park the request asked for (opts.parkedMs) plus a slack for the
+  // network. A rejected reading costs nothing; the next prompt response re-anchors.
   async function http(method, path, opts) {
     opts = opts || {};
+    const t0 = Date.now();
     const resp = await fetch(serverBase() + path, {
       method,
       headers: Object.assign({ Authorization: 'Bearer ' + (await keys()).authToken }, opts.headers || {}),
       body: opts.body || null,
       signal: opts.signal || null
     });
+    const rtt = Date.now() - t0;
     const st = resp.headers.get('X-Server-Time');
-    if (st) {
+    if (st && rtt <= (opts.parkedMs || 0) + TIME_SLACK_MS) {
       const t = Number(st);
       if (isFinite(t)) S.adapter.setServerOffset(t - Date.now());
     }
@@ -215,8 +231,9 @@
     let path = '/v1/blob/' + (await keys()).routingId + '/charge';
     const headers = {};
     if (S.versions.charge != null) headers['If-None-Match'] = '"' + S.versions.charge + '"';
-    if (opts.wait && S.versions.charge != null) path += '?wait=' + WATCH_WAIT_S;
-    const r = await http('GET', path, { headers, signal: opts.signal || null });
+    let parkedMs = 0;
+    if (opts.wait && S.versions.charge != null) { path += '?wait=' + WATCH_WAIT_S; parkedMs = WATCH_WAIT_S * 1000; }
+    const r = await http('GET', path, { headers, signal: opts.signal || null, parkedMs });
     if (r.status === 404) { S.versions.charge = null; return; }
     if (r.status === 304) { markSynced(); return; } // unchanged since our version
     // Auth won't heal on retry, so show it in the status, but throw anyway: the watch
@@ -617,7 +634,8 @@
     defaultServer() { return DEFAULT_SERVER; },
 
     // Exposed for tests.
-    _internals: { deriveKeys, encryptDoc, decryptDoc, mergeSettings, base32Encode, base32Decode, formatCode }
+    _internals: { deriveKeys, encryptDoc, decryptDoc, mergeSettings, base32Encode, base32Decode, formatCode,
+      TIME_SLACK_MS, WATCH_WAIT_S }
   };
 
   globalThis.Sync = Sync;

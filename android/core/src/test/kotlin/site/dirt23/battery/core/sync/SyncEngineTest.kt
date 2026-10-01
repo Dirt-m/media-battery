@@ -420,6 +420,73 @@ class SyncEngineTest {
         assertEquals(50_000L, a.offsets.last())
     }
 
+    @Test
+    fun `a response held through a sleep does not move the clock`() = runTest {
+        // The server answered the parked watch at 23:00, Doze held the response, and the
+        // phone reads it eight hours later. Trusting it would set the clock eight hours
+        // behind; the prompt settings pull right after it anchors as usual.
+        val eightHours = 8 * 3600_000L
+        val a = FakeSyncAdapter()
+        a.deviceNow = 1_700_000_000_000L
+        var serverNow = a.deviceNow + 50_000L
+        val t = FakeServerTransport(serverTimeMs = { serverNow })
+        t.seed(routing, "charge", Wire.anchorBlob(code, Anchor(charge = 500.0, asOf = 1, writer = "other")))
+        val e = newEngine(a, t)
+
+        e.start()
+        runCurrent()
+        a.offsets.clear()
+        t.before = { req, _ ->
+            serverNow = a.deviceNow + 50_000L // stamped when the server answers
+            if (req.url.contains("wait=")) a.deviceNow += eightHours // read after the sleep
+            null
+        }
+
+        advanceTimeBy(SyncEngine.WATCH_PACE_MS + 100)
+        assertTrue(watchGets(t).size >= 2, "the watch round ran")
+        assertTrue(a.offsets.all { it == 50_000L }, "the held reading must be dropped: ${a.offsets}")
+        assertEquals(50_000L, a.offset)
+    }
+
+    @Test
+    fun `a parked watch answered within its park still anchors the clock`() = runTest {
+        // The park itself is expected latency: a reading that arrives inside wait plus slack
+        // is as good as a prompt one.
+        val a = FakeSyncAdapter()
+        a.deviceNow = 1_700_000_000_000L
+        var serverNow = a.deviceNow + 50_000L
+        val t = FakeServerTransport(serverTimeMs = { serverNow })
+        t.seed(routing, "charge", Wire.anchorBlob(code, Anchor(charge = 500.0, asOf = 1, writer = "other")))
+        val e = newEngine(a, t)
+
+        e.start()
+        runCurrent()
+        a.offsets.clear()
+        val park = SyncEngine.WATCH_WAIT_S * 1000L + 2_000L
+        t.before = { req, _ ->
+            serverNow = a.deviceNow + 50_000L
+            if (req.url.contains("wait=")) a.deviceNow += park
+            null
+        }
+
+        advanceTimeBy(SyncEngine.WATCH_PACE_MS + 100)
+        assertTrue(watchGets(t).size >= 2, "the watch round ran")
+        assertContains(a.offsets, 50_000L - park, "a full park plus network is a trusted reading")
+    }
+
+    @Test
+    fun `a plain request that took longer than the slack does not move the clock`() = runTest {
+        val t = FakeServerTransport(serverTimeMs = { 1_700_000_050_000L })
+        val a = FakeSyncAdapter()
+        a.deviceNow = 1_700_000_000_000L
+        val e = newEngine(a, t)
+        t.before = { _, _ -> a.deviceNow += SyncEngine.TIME_SLACK_MS + 1; null }
+
+        e.start()
+        runCurrent()
+        assertTrue(a.offsets.isEmpty(), "every round trip overran the slack")
+    }
+
     // --- joining ------------------------------------------------------------------------
 
     @Test

@@ -151,11 +151,21 @@
   // fire first; opening the page counts as input. No scroll: pages fire it
   // programmatically (a live chat autoscrolls forever with nobody there), and a real
   // scroll already arrives as wheel, touch, key, or pointer.
-  let lastInputTs = performance.now();
+  //
+  // Kept on two clocks. performance.now() stands still while a phone sleeps, so on its
+  // own the last tap before the screen went dark would read as seconds old on wake and
+  // count as a minute of use. The wall clock keeps counting through the sleep; the older
+  // of the two readings is the honest one (a wall clock set backwards reads negative
+  // and simply loses).
+  let lastInputPerf = performance.now();
+  let lastInputWall = Date.now();
   const INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
   for (const ev of INPUT_EVENTS) {
-    window.addEventListener(ev, () => { lastInputTs = performance.now(); },
+    window.addEventListener(ev, () => { lastInputPerf = performance.now(); lastInputWall = Date.now(); },
       { capture: true, passive: true });
+  }
+  function inputAgo() {
+    return Math.round(Math.max(performance.now() - lastInputPerf, Date.now() - lastInputWall));
   }
 
   let lastBeat = -Infinity; // beat immediately on the first painted frame
@@ -170,7 +180,7 @@
           type: 'onscreen',
           site,
           playing: audibleVideoPlaying(),
-          inputAgo: Math.round(performance.now() - lastInputTs)
+          inputAgo: inputAgo()
         });
       } catch (_) { port = null; }
     }
@@ -420,6 +430,33 @@
     else if (!e.shiftKey && (idx === -1 || idx === els.length - 1)) { e.preventDefault(); els[0].focus(); }
   }
 
+  // --- Fullscreen ---------------------------------------------------------------
+  // Only the fullscreen element gets painted, so a cover appended to body is invisible
+  // under a fullscreen video, while the shield still eats every tap the page would use
+  // to leave fullscreen. On a phone that is a frozen video with no way out short of
+  // killing the browser. So the cover mounts inside the fullscreen element, where it
+  // shows, and the document is asked to leave fullscreen, so the page comes back with
+  // the browser's own controls around it.
+  function overlayParent() {
+    return document.fullscreenElement || document.body || document.documentElement;
+  }
+
+  function leaveFullscreen() {
+    if (!document.fullscreenElement || !document.exitFullscreen) return;
+    try {
+      const p = document.exitFullscreen();
+      if (p && p.catch) p.catch(() => {});
+    } catch (_) {}
+  }
+
+  // Fullscreen coming or going moves the cover to wherever it can be seen. The poll
+  // re-exits a fullscreen entered under the cover.
+  document.addEventListener('fullscreenchange', () => {
+    if (!host || !host.isConnected) return;
+    const parent = overlayParent();
+    if (host.parentNode !== parent) parent.appendChild(host);
+  });
+
   function ensureHost() {
     if (host && host.isConnected) return;
     host = document.createElement('div');
@@ -433,7 +470,7 @@
     for (const ev of BUBBLE_EVENTS) host.addEventListener(ev, blockGateBubble);
     host.addEventListener('keydown', trapTab);
     overlayKind = null;
-    (document.body || document.documentElement).appendChild(host);
+    overlayParent().appendChild(host);
     installShield();
   }
 
@@ -508,6 +545,7 @@
       gate = null; // the page wiped our host mid gate; fall through and rebuild
     }
     ensureHost();
+    leaveFullscreen();
     if (overlayKind !== kind) drawCard(kind);
     updateTimer();
   }
