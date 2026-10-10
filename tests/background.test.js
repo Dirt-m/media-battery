@@ -417,6 +417,43 @@ test('warnSeconds accepts 0 (warning off) and clamps a negative to it', () => {
   assert.equal(B.getState().warnSeconds, 600);
 });
 
+test('frictionCount is 1 to 5 whole questions, locally and from a sync', () => {
+  reset();
+  assert.equal(B.getState().frictionCount, 1);
+  B.applySettings({ frictionCount: 3 });
+  assert.equal(B.getState().frictionCount, 3);
+  B.applySettings({ frictionCount: 9 });
+  assert.equal(B.getState().frictionCount, 5);
+  B.applySettings({ frictionCount: 0 });
+  assert.equal(B.getState().frictionCount, 1);
+  B.applyRemoteSettings({ frictionCount: 2.4 });
+  assert.equal(B.getState().frictionCount, 2);
+  B.applyRemoteSettings({ frictionCount: 'lots' });
+  assert.equal(B.getState().frictionCount, 1);
+  assert.equal(B.snapshot().frictionCount, 1);
+  assert.ok('frictionCount' in B.syncAdapter.getSettings());
+});
+
+test('the phone\'s trackedApps ride along: stored from a sync, re-emitted, never invented', () => {
+  reset();
+  assert.ok(!('trackedApps' in B.syncAdapter.getSettings()));
+  const before = B.settingsSnapshot();
+  B.applyRemoteSettings({ trackedApps: ['com.instagram.android', 7, '', 'com.vinted'] });
+  assert.deepEqual(B.getState().trackedApps, ['com.instagram.android', 'com.vinted']);
+  assert.deepEqual(B.syncAdapter.getSettings().trackedApps, ['com.instagram.android', 'com.vinted']);
+  assert.deepEqual(B.changedSettingKeys(before), ['trackedApps']);
+  // Junk shapes leave the list alone rather than emptying it.
+  B.applyRemoteSettings({ trackedApps: 'com.vinted' });
+  assert.deepEqual(B.getState().trackedApps, ['com.instagram.android', 'com.vinted']);
+  // A local save (the options page) never carries the key, so it stays put.
+  B.applySettings({ capacity: 1200 });
+  assert.deepEqual(B.getState().trackedApps, ['com.instagram.android', 'com.vinted']);
+  // A phone that untracked everything sends an empty list with a stamp: still carried.
+  B.setState({ settingsMeta: { trackedApps: 5 } });
+  B.applyRemoteSettings({ trackedApps: [] });
+  assert.deepEqual(B.syncAdapter.getSettings().trackedApps, []);
+});
+
 test('badge text carries the flow arrow: down draining, up recharging, bare when full', () => {
   // 905, not 900: at exactly 15 min a millisecond of real drain between the two
   // recomputes tips the floor to 14 and the test flakes.

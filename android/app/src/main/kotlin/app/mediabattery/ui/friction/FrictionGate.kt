@@ -60,15 +60,18 @@ import app.mediabattery.ui.theme.SbColors
 import site.dirt23.battery.core.friction.FrictionTask
 import site.dirt23.battery.core.friction.FrictionTaskKind
 import site.dirt23.battery.core.friction.FrictionTaskPool
+import site.dirt23.battery.core.friction.TaskType
 import kotlin.random.Random
 
 // The deliberate friction gate, a port of the extension's friction.js. The questions
 // come from the core pool; this file is the rendering, the submit check, and the why box.
 //
-// Two rules. Answers are checked only when confirm is pressed: live marking would be an
-// oracle, since the counting tasks become "increment until it turns green". And the cost
-// is flat, always `count` questions however many attempts it takes, because an
-// unpredictable toll invites turning the gate off altogether.
+// Three rules. Answers are checked only when confirm is pressed: live marking would be an
+// oracle, since the counting tasks become "increment until it turns green". The cost is
+// flat, always `count` questions however many attempts it takes, because an unpredictable
+// toll invites turning the gate off altogether. And a miss keeps the task types and only
+// redraws their values, so resubmitting is neither a free spin for an easier type nor a
+// way to count up to the answer.
 
 private val FieldBg = Color(0xFF0F1318)
 private val FocusLine = Color(0xFF8B98A5)
@@ -137,11 +140,15 @@ fun FrictionGate(
     val minWords = if (askWhy) whyMinWords.coerceAtLeast(1) else 0
     val sizes = if (large) LargeSizes else DefaultSizes
 
-    // A wrong answer bumps the round, which redraws every question and clears every
-    // answer. The why box survives it: only the questions are rebuilt, same as the JS.
+    // A wrong answer bumps the round, which regenerates every question (same types, fresh
+    // values) and clears every answer. The why box survives it: only the questions are
+    // rebuilt, same as the JS.
+    val types: List<TaskType> = remember(questionCount) {
+        FrictionTaskPool.drawTypes(questionCount, Random.Default)
+    }
     var round by remember { mutableIntStateOf(0) }
-    val questions = remember(round, questionCount) {
-        FrictionTaskPool.buildQuestions(questionCount, Random.Default)
+    val questions = remember(round, types) {
+        types.map { it.generate(Random.Default) }
     }
     val answers = remember(round, questionCount) {
         mutableStateListOf<String>().apply { repeat(questionCount) { add("") } }

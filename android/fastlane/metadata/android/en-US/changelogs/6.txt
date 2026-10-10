@@ -1,1 +1,2 @@
 A sync reply the phone slept on no longer sets the clock back when it is read. Trusted, it put last night's charge back on every device; that is one way the battery was empty in the morning.
+The apps you track now sync with the profile, so a reinstall or a second phone gets them back. The gate's questions are evened out, a wrong answer keeps the same kind of question with new numbers, and how many questions a gate asks is a setting.

@@ -40,6 +40,7 @@ data class SettingsPatch(
     val hourRules: List<RawHourRule?>? = null,
     val hideYtSidebar: Boolean? = null,
     val showTimeLeft: Boolean? = null,
+    val frictionCount: Int? = null,
     val customEntries: List<CustomEntry>? = null,
 )
 
@@ -283,6 +284,7 @@ class BatteryEngine(
             rechargePerMin = state.rechargePerMin,
             warnSeconds = state.warnSeconds,
             showTimeLeft = state.showTimeLeft,
+            frictionCount = state.frictionCount,
             reserveSeconds = Constants.RESERVE_SECONDS,
             passSeconds = Constants.SITE_PASS_SECONDS,
             rechargePaused = Rules.chargeFactorAt(state.hourRules, wall, zone) == 0.0,
@@ -366,6 +368,7 @@ class BatteryEngine(
         patch.hourRules?.let { state.hourRules = Rules.sanitizeRules(it) }
         patch.hideYtSidebar?.let { state.hideYtSidebar = it }
         patch.showTimeLeft?.let { state.showTimeLeft = it }
+        patch.frictionCount?.let { state.frictionCount = BatteryState.clampFrictionCount(it) }
         patch.customEntries?.let { state.customEntries = ArrayList(it) }
         // Banked charge cannot exceed a capacity the user just lowered.
         state.charge = BatteryState.clamp(state.charge, 0.0, state.capacity)

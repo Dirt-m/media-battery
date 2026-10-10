@@ -12,11 +12,13 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 /**
- * Which packages the user picked, device local.
+ * Which packages the user picked.
  *
  * Only membership lives here. The mode of a tracked app (On, Off, Block) lives in the
- * engine's `siteModes` under the canonical id, because that is what syncs: a package list
- * is about this phone, a mode belongs on every device.
+ * engine's `siteModes` under the canonical id. Both sync: the list travels as the
+ * `trackedApps` settings key (whole list, last write wins), so a reinstall or a second
+ * phone on the profile picks the same apps back up. The extension carries the key
+ * verbatim and never edits it. The sync layer calls [replace] with what arrived.
  *
  * The write is the same shape as the engine's state file: whole file, temp plus fsync plus
  * rename, so a kill mid write leaves the old list rather than half a new one.
@@ -41,6 +43,7 @@ class TrackedAppsStore(dir: File, private val neverTrack: NeverTrack) {
     fun isTracked(pkg: String): Boolean = pkg in _packages.value && !neverTrack.contains(pkg)
 
     /** Adds a package. False when [neverTrack] refuses it. */
+    @Synchronized
     fun track(pkg: String): Boolean {
         if (neverTrack.contains(pkg)) return false
         if (pkg in _packages.value) return true
@@ -48,9 +51,22 @@ class TrackedAppsStore(dir: File, private val neverTrack: NeverTrack) {
         return true
     }
 
+    @Synchronized
     fun untrack(pkg: String) {
         if (pkg !in _packages.value) return
         write(_packages.value - pkg)
+    }
+
+    /**
+     * The list as another device has it. Stored as is, packages this phone lacks included:
+     * [isTracked] only ever asks about a package that is in front, and the picker only lists
+     * launchable ones, so an absent package is carried, never shown. True when it changed.
+     */
+    @Synchronized
+    fun replace(next: Set<String>): Boolean {
+        if (next == _packages.value) return false
+        write(LinkedHashSet(next))
+        return true
     }
 
     private fun write(next: Set<String>) {

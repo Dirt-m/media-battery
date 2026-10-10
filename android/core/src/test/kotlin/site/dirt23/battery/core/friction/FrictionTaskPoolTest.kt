@@ -26,7 +26,7 @@ class FrictionTaskPoolTest {
 
     private val arithmeticPrompt = Regex("""^What's (\d+) × (\d+) ([+−]) (\d+)\?$""")
     private val powerPrompt = Regex("""^What's 2 to the power of (\d+)\?$""")
-    private val lettersPrompt = Regex("""^How many times do the letters "(.)" and "(.)" appear below, combined\?$""")
+    private val lettersPrompt = Regex("""^How many times does the letter "(.)" appear below\?$""")
 
     private fun typeOf(task: FrictionTask): Type = when {
         task.label == "Type this exactly (no pasting)" -> Type.PHRASE
@@ -53,8 +53,7 @@ class FrictionTaskPoolTest {
     private fun letterCount(task: FrictionTask): Int {
         val m = lettersPrompt.matchEntire(task.label)!!
         val x = m.groupValues[1][0]
-        val y = m.groupValues[2][0]
-        return task.target!!.count { it == x || it == y }
+        return task.target!!.count { it == x }
     }
 
     /** The answer a user would arrive at, worked out from the prompt and the block only. */
@@ -94,13 +93,13 @@ class FrictionTaskPoolTest {
         repeat(50) { seed ->
             val task = FrictionTaskPool.phraseTask(Random(seed.toLong()))
             val parts = task.target!!.split("-")
-            assertEquals(5, parts.size)
+            assertEquals(4, parts.size)
             val numberParts = parts.filter { it.toIntOrNull() != null }
             assertEquals(1, numberParts.size)
             val number = numberParts[0].toInt()
             assertTrue(number in 10..99)
             val wordParts = parts.filter { it.toIntOrNull() == null }
-            assertEquals(4, wordParts.size)
+            assertEquals(3, wordParts.size)
             assertEquals(1, wordParts.count { it == it.uppercase() })
             // Every word part, folded back to lower case, comes from the pool and none repeat.
             val lower = wordParts.map { it.lowercase() }
@@ -165,13 +164,16 @@ class FrictionTaskPoolTest {
     // --- powerOfTwoTask: trim only compare (powerOfTwo in friction.js) -------------------------------
 
     @Test
-    fun `powerOfTwoTask covers exponents 4 through 12 and rejects a neighboring power`() {
+    fun `powerOfTwoTask covers exponents 6 through 10 and rejects a neighboring power`() {
+        val seen = mutableSetOf<Int>()
         repeat(100) { seed ->
             val task = FrictionTaskPool.powerOfTwoTask(Random(seed.toLong()))
             val exponent = powerPrompt.matchEntire(task.label)!!.groupValues[1].toInt()
-            assertTrue(exponent in 4..12)
+            assertTrue(exponent in 6..10)
+            seen.add(exponent)
             assertTrue(task.check((1 shl exponent).toString()))
         }
+        assertEquals((6..10).toSet(), seen)
         val task = FrictionTaskPool.powerOfTwoTask(Random(5))
         val answer = 1 shl powerPrompt.matchEntire(task.label)!!.groupValues[1].toInt()
         assertTrue(task.check(" $answer "))
@@ -185,7 +187,7 @@ class FrictionTaskPoolTest {
     fun `sortDescendingTask tolerates ragged whitespace but not a wrong order`() {
         val task = FrictionTaskPool.sortDescendingTask(Random(6))
         val shown = shownNumbers(task)
-        assertEquals(7, shown.size)
+        assertEquals(5, shown.size)
         assertEquals(shown.toSet().size, shown.size) // all distinct
         assertTrue(shown.all { it in 10..99 })
         val descending = shown.sortedDescending()
@@ -207,13 +209,13 @@ class FrictionTaskPoolTest {
 
     @Test
     fun `sortDescendingTask displays the whole answer set in an order that is not the answer`() {
-        // The block is a shuffled copy of the seven numbers, so sorting what is shown is the
+        // The block is a shuffled copy of the five numbers, so sorting what is shown is the
         // whole job. A shuffle can land back in descending order on some seed, so the wrong
         // order check only runs when the display is not already the answer.
         repeat(50) { seed ->
             val task = FrictionTaskPool.sortDescendingTask(Random(seed.toLong()))
             val shown = shownNumbers(task)
-            assertEquals(7, shown.size)
+            assertEquals(5, shown.size)
             assertTrue(task.check(shown.sortedDescending().joinToString(" ")))
             if (shown != shown.sortedDescending()) {
                 assertFalse(task.check(shown.joinToString(" ")))
@@ -224,11 +226,10 @@ class FrictionTaskPoolTest {
     // --- countLettersTask: trim only compare (countLetters in friction.js) ----------------------------
 
     @Test
-    fun `countLettersTask tallies both letters combined and rejects an off count`() {
+    fun `countLettersTask tallies the letter and rejects an off count`() {
         val task = FrictionTaskPool.countLettersTask(Random(8))
-        val m = lettersPrompt.matchEntire(task.label)!!
-        assertEquals(8, task.target!!.split(" ").size)
-        assertTrue(m.groupValues[1] != m.groupValues[2])
+        assertTrue(lettersPrompt.matches(task.label))
+        assertEquals(5, task.target!!.split(" ").size)
         val count = letterCount(task)
         assertTrue(count > 0)
         assertTrue(task.check(" $count "))
@@ -236,13 +237,11 @@ class FrictionTaskPoolTest {
     }
 
     @Test
-    fun `countLettersTask draws its two letters from characters actually present`() {
+    fun `countLettersTask draws its letter from characters actually present`() {
         repeat(100) { seed ->
             val task = FrictionTaskPool.countLettersTask(Random(seed.toLong()))
             val m = lettersPrompt.matchEntire(task.label)!!
-            val text = task.target!!
-            assertTrue(m.groupValues[1][0] in text.toSet())
-            assertTrue(m.groupValues[2][0] in text.toSet())
+            assertTrue(m.groupValues[1][0] in task.target!!.toSet())
         }
     }
 
@@ -290,6 +289,35 @@ class FrictionTaskPoolTest {
         for (i in poolSize until n) {
             assertEquals(types[i % poolSize], types[i], "index $i should repeat index ${i % poolSize}'s type")
         }
+    }
+
+    // --- drawTypes: the round's types, kept across a retry -----------------------------------
+
+    @Test
+    fun `drawTypes returns n types, cycling the pool, and buildQuestions generates exactly them`() {
+        val types = FrictionTaskPool.drawTypes(8, Random(11))
+        assertEquals(8, types.size)
+        assertEquals(TaskType.entries.toSet(), types.take(6).toSet())
+        assertEquals(types[0], types[6])
+        assertEquals(types[1], types[7])
+        // The same seed builds the same type sequence, generated.
+        val built = FrictionTaskPool.buildQuestions(8, Random(11))
+        assertEquals(types.map { it.name }, built.map { typeOf(it).name })
+    }
+
+    @Test
+    fun `generating a type again keeps the type and changes the values`() {
+        // What a retry does: the types stay, the questions are redrawn. Over a handful of
+        // seeds some redraw must differ, or a miss would hand back the same question.
+        val random = Random(12)
+        var changed = 0
+        for (type in TaskType.entries) {
+            val first = type.generate(random)
+            val second = type.generate(random)
+            assertEquals(type.name, typeOf(second).name)
+            if (first.label != second.label || first.target != second.target) changed++
+        }
+        assertTrue(changed >= 4, "only $changed of 6 redraws changed")
     }
 
     // --- property test: every generated task's own answer passes its own checker ---------

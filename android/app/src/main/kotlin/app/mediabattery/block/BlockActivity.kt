@@ -115,6 +115,7 @@ class BlockActivity : ComponentActivity() {
                     minutes = minutesOf(
                         if (decision is BlockDecision.Dead) snapshot.reserveSeconds else snapshot.passSeconds,
                     ),
+                    questions = snapshot.frictionCount,
                     gateOpen = gateOpen,
                     onOpenGate = { gateOpen = true },
                     onGateCancel = { gateOpen = false },

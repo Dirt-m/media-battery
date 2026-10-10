@@ -10,6 +10,8 @@ data class Snapshot(
     val rechargePerMin: Double,
     val warnSeconds: Int,
     val showTimeLeft: Boolean = true,
+    /** Questions every friction gate asks. */
+    val frictionCount: Int = 1,
     val reserveSeconds: Int,
     val passSeconds: Int,
     val rechargePaused: Boolean,

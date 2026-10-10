@@ -1,12 +1,18 @@
 // The friction confirmation gate.
 //
 // Muscle memory only breaks if the challenge changes every attempt, so the gate draws
-// small tasks at random from a pool and regenerates them on every failed try: retype a
-// phrase, arithmetic with precedence, add three numbers, a power of two, sort numbers,
-// tally two letters across a block of text. None can be pasted.
+// small tasks at random from a pool: retype a phrase, arithmetic with precedence, add
+// three numbers, a power of two, sort numbers, tally a letter across a block of text.
+// None can be pasted. Every task is tuned to cost about the same half minute of
+// attention, so no draw is a lucky one.
 //
-// opts.count is how many questions, flat: one from the block overlay, one from the
-// settings page when loosening. opts.askWhy also demands a typed reason.
+// A wrong answer keeps the task types and only redraws their values. Redrawing the
+// types too made a miss a free spin ("submit blanks until an easy one comes up"), while
+// keeping the exact question would turn the counting tasks into "try 11, then 12".
+//
+// opts.count is how many questions, flat however many attempts it takes: the
+// `frictionCount` setting, shared by the block overlay and the settings page.
+// opts.askWhy also demands a typed reason.
 //
 // Exposed as window.FrictionGate.mount(container, opts). `container` may be a shadow
 // root (block overlay) or a normal element (options page), so the styles are injected
@@ -36,12 +42,12 @@
   const normList = (s) => s.trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
   const wordsIn = (s) => s.trim().split(/\s+/).filter(Boolean).length;
 
-  // --- Retype a longish phrase exactly -----------------------------------------
-  // 4 words plus a 2 digit number, one word upper cased so letter case matters. Sits
+  // --- Retype a phrase exactly ---------------------------------------------------
+  // 3 words plus a 2 digit number, one word upper cased so letter case matters. Sits
   // in the pool with the tasks below.
   function phraseTask() {
-    const words = sampleWords(4);
-    const upper = rint(4);
+    const words = sampleWords(3);
+    const upper = rint(3);
     const parts = words.map((w, i) => (i === upper ? w.toUpperCase() : w));
     parts.splice(rint(parts.length + 1), 0, String(10 + rint(90)));
     const p = parts.join('-');
@@ -71,9 +77,9 @@
       return { label: 'Add all of these together', target: nums.join('   '),
         kind: 'numeric', check: (v) => v.trim() === String(answer) };
     },
-    // High enough that you have to double your way up.
+    // High enough that you have to double your way up, low enough that you can.
     function powerOfTwo() {
-      const n = 4 + rint(9); // exponent 4..12
+      const n = 6 + rint(5); // exponent 6..10
       const answer = Math.pow(2, n);
       return { label: `What's 2 to the power of ${n}?`, target: null,
         kind: 'numeric', check: (v) => v.trim() === String(answer) };
@@ -81,29 +87,30 @@
     // Long enough that you can't eyeball the order.
     function sortDescending() {
       const nums = [];
-      while (nums.length < 7) { const n = 10 + rint(90); if (!nums.includes(n)) nums.push(n); }
+      while (nums.length < 5) { const n = 10 + rint(90); if (!nums.includes(n)) nums.push(n); }
       const sorted = [...nums].sort((a, b) => b - a).join(' ');
       return { label: 'Type these numbers largest to smallest',
         target: shuffle(nums.slice()).join('   '), kind: 'text',
         check: (v) => normList(v) === sorted };
     },
-    // Scan a block of text and tally two letters at once.
+    // Scan a block of text and tally one letter.
     function countLetters() {
-      const text = sampleWords(8).join(' ');
+      const text = sampleWords(5).join(' ');
       const present = [...new Set(text.replace(/[^a-z]/g, ''))];
-      const [x, y] = shuffle(present).slice(0, 2);
-      const n = text.split('').filter((ch) => ch === x || ch === y).length;
-      return { label: `How many times do the letters "${x}" and "${y}" appear below, combined?`,
+      const x = present[rint(present.length)];
+      const n = text.split('').filter((ch) => ch === x).length;
+      return { label: `How many times does the letter "${x}" appear below?`,
         target: text, kind: 'numeric', check: (v) => v.trim() === String(n) };
     }
   ];
 
-  // Drawn at random from the whole pool, phrase retype included, so even a one
-  // question gate asks something different each time. Cycles if n exceeds the pool.
-  function buildQuestions(n) {
+  // The task types for a round, drawn at random from the whole pool, phrase retype
+  // included, so even a one question gate asks something different each time. Cycles
+  // if n exceeds the pool. A retry keeps these and only calls them again.
+  function drawTypes(n) {
     const pool = shuffle([phraseTask, ...TASKS]);
     const out = [];
-    for (let i = 0; i < n; i++) out.push(pool[i % pool.length]());
+    for (let i = 0; i < n; i++) out.push(pool[i % pool.length]);
     return out;
   }
 
@@ -212,13 +219,15 @@
     const whyCount = askWhy ? q('why-count') : null;
     if (whyInput) lockInput(whyInput);
 
+    const types = drawTypes(count);
     let questions = [];
     let inputs = [];
 
     const whyOk = () => !askWhy || wordsIn(whyInput.value) >= whyMin;
 
+    // Same task types every round, fresh values.
     function newChallenge() {
-      questions = buildQuestions(count);
+      questions = types.map((make) => make());
       questionsWrap.innerHTML = '';
       inputs = questions.map((qn, i) => {
         const field = doc.createElement('div');
@@ -267,8 +276,8 @@
         whyInput.focus();
         return;
       }
-      // Something's wrong. Fresh set so you start over.
-      status.textContent = "Not quite. Here's a fresh set.";
+      // Something's wrong. Same tasks, new values, so you start over.
+      status.textContent = 'Not quite. Try again.';
       newChallenge();
     });
 

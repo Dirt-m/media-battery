@@ -23,6 +23,11 @@ object Constants {
     const val DEFAULT_RECHARGE_PER_MIN = 5.0
     const val DEFAULT_WARN_SECONDS = 300
 
+    /** Questions a friction gate asks (`frictionCount`), one flat toll for every gate. */
+    const val DEFAULT_FRICTION_COUNT = 1
+    const val FRICTION_COUNT_MIN = 1
+    const val FRICTION_COUNT_MAX = 5
+
     const val CAPACITY_MIN_SECONDS = 60
     const val CAPACITY_MAX_SECONDS = 24 * 3600
     const val RECHARGE_PER_MIN_MIN = 1.0

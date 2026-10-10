@@ -51,6 +51,7 @@ import app.mediabattery.ui.hours.HoursTimeSheet
 import app.mediabattery.ui.hours.rememberHoursEditor
 import app.mediabattery.ui.onboarding.OnboardingState
 import app.mediabattery.ui.theme.SbColors
+import site.dirt23.battery.core.Constants
 import site.dirt23.battery.core.engine.SettingsPatch
 import site.dirt23.battery.core.model.Snapshot
 import site.dirt23.battery.core.rules.RulesDiff
@@ -103,7 +104,8 @@ fun OptionsScreen(
         FrictionGate(
             title = stringResource(R.string.settings_gate_title),
             confirmLabel = stringResource(R.string.settings_gate_confirm),
-            count = 1,
+            // Read once as the gate goes up: the toll is set before the gate is asked for.
+            count = graph.engineHost.snapshot.value.frictionCount,
             askWhy = false,
             onCancel = {
                 request.onCancel()
@@ -138,6 +140,7 @@ fun OptionsScreen(
                 item { SectionLabel(stringResource(R.string.options_battery), divider = false) }
                 item { BatteryNumbers(graph, numbers) { gate = it } }
                 item { TimeLeftCard(graph) }
+                item { QuestionsCard(graph) { gate = it } }
 
                 item { SectionLabel(stringResource(R.string.apps_title)) }
                 appsSection(graph, appRows, settings.siteModes, query, { query = it }) { gate = it }
@@ -317,6 +320,41 @@ private fun TimeLeftCard(graph: AppGraph) {
                     SettingsPatch(showTimeLeft = index == 0),
                     listOf("showTimeLeft"),
                 )
+            },
+        )
+    }
+}
+
+// --- The gate's size --------------------------------------------------------------------
+
+/**
+ * How many questions every friction gate asks, this cover's and this page's alike. A synced
+ * setting (`frictionCount`), applied on the tap. Asking for fewer is loosening and costs the
+ * gate as it stands; asking for more is free.
+ */
+@Composable
+private fun QuestionsCard(graph: AppGraph, onGate: (GateRequest) -> Unit) {
+    val snapshot by graph.engineHost.snapshot.collectAsStateWithLifecycle()
+    val current = snapshot.frictionCount
+    fun apply(count: Int) {
+        graph.engineHost.applySettings(SettingsPatch(frictionCount = count), listOf("frictionCount"))
+    }
+    SbCard {
+        CardTitle(
+            stringResource(R.string.settings_questions),
+            stringResource(R.string.settings_questions_why),
+        )
+        Spacer(Modifier.height(12.dp))
+        Segmented(
+            options = (Constants.FRICTION_COUNT_MIN..Constants.FRICTION_COUNT_MAX).map { SegmentOption(it.toString()) },
+            selected = current - Constants.FRICTION_COUNT_MIN,
+            onSelect = { index ->
+                val next = index + Constants.FRICTION_COUNT_MIN
+                when {
+                    next == current -> Unit
+                    next < current -> onGate(GateRequest(onPaid = { apply(next) }))
+                    else -> apply(next)
+                }
             },
         )
     }

@@ -121,6 +121,7 @@ internal object StateJson {
         putJsonObject("sitePasses") { for ((id, expiry) in s.sitePasses) put(id, expiry) }
         put("hideYtSidebar", s.hideYtSidebar)
         put("showTimeLeft", s.showTimeLeft)
+        put("frictionCount", s.frictionCount)
         put("depleted", s.depleted)
         put("depletedAt", s.depletedAt)
         put("depletionSeq", s.depletionSeq)
@@ -148,6 +149,7 @@ internal object StateJson {
             sitePasses = root.longMap("sitePasses"),
             hideYtSidebar = root.bool("hideYtSidebar") ?: d.hideYtSidebar,
             showTimeLeft = root.bool("showTimeLeft") ?: d.showTimeLeft,
+            frictionCount = root.int("frictionCount") ?: d.frictionCount,
             depleted = root.bool("depleted") ?: d.depleted,
             depletedAt = root.long("depletedAt"),
             depletionSeq = root.int("depletionSeq") ?: d.depletionSeq,

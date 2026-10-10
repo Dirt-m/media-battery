@@ -1,5 +1,6 @@
 package app.mediabattery.sync
 
+import app.mediabattery.data.TrackedAppsStore
 import app.mediabattery.engine.EngineHost
 import app.mediabattery.engine.SettingsView
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +44,7 @@ class EngineSyncAdapter(
     private val engine: BatteryEngine,
     private val host: EngineHost,
     private val store: SyncStore,
+    private val tracked: TrackedAppsStore,
     private val clock: SbClock,
     initialServerOffset: Long,
 ) : SyncAdapter {
@@ -96,7 +98,12 @@ class EngineSyncAdapter(
     }
 
     override fun getSettings(): Map<String, JsonElement> =
-        SettingsBridge.emit(host.snapshot.value, host.settings.value, store.record.value.passengers)
+        SettingsBridge.emit(
+            host.snapshot.value,
+            host.settings.value,
+            store.record.value.passengers,
+            tracked.packages.value,
+        )
 
     override fun applyRemoteSettings(values: Map<String, JsonElement>) {
         val arrived = SettingsBridge.ingest(
@@ -106,6 +113,9 @@ class EngineSyncAdapter(
         )
         store.update { it.copy(passengers = arrived.passengers) }
         host.applyRemoteSettings(arrived.patch)
+        // The list is the host's input, not the engine's state, so it lands beside the
+        // patch and the running engagement re-evaluates against it at once.
+        arrived.trackedApps?.let { if (tracked.replace(it)) host.onTrackedChanged() }
     }
 
     /** Is the user in an app whose time counts right now? Decides who owns the charge. */
@@ -138,7 +148,7 @@ class EngineSyncAdapter(
  * settings document that disagrees about how a number or a rule is written is a different
  * document every time it crosses platforms.
  *
- * Three of the eight keys are passengers, held verbatim (see [Passengers]). The fourth
+ * Three of the ten keys are passengers, held verbatim (see [Passengers]). The fourth
  * subtlety is `enabledSites`: one key holding every site's mode, so last write wins takes the
  * whole map. Two rules keep that from losing anything.
  *
@@ -149,16 +159,29 @@ class EngineSyncAdapter(
  * their app modes. This leans on the extension's save path carrying ids it has no row for
  * verbatim (options.js collectSites); an older extension rebuilt the map from the sites it
  * knew, and a pruned mode reads as tracked on the way back, which is why these used to stay
- * device local. Which apps are tracked still never syncs; a mode for an app a device does not
- * track is just carried.
+ * device local. Which apps are tracked syncs too, as `trackedApps`: the whole package list,
+ * last write wins, so a reinstalled Media Battery or a second phone on the profile picks the
+ * same apps back up. The extension holds that key as a passenger of its own.
  */
 internal object SettingsBridge {
 
-    /** What arriving settings mean here: a patch for the engine, and what to carry on. */
-    data class Arrived(val patch: SettingsPatch, val passengers: Passengers)
+    /**
+     * What arriving settings mean here: a patch for the engine, what to carry on, and the
+     * tracked package list when the wire named one.
+     */
+    data class Arrived(
+        val patch: SettingsPatch,
+        val passengers: Passengers,
+        val trackedApps: Set<String>? = null,
+    )
 
-    /** The eight keys, in the order the extension writes them. */
-    fun emit(snap: Snapshot, view: SettingsView, carried: Passengers): Map<String, JsonElement> =
+    /** The ten keys, in the order the extension writes them. */
+    fun emit(
+        snap: Snapshot,
+        view: SettingsView,
+        carried: Passengers,
+        trackedApps: Set<String> = emptySet(),
+    ): Map<String, JsonElement> =
         linkedMapOf(
             "rechargePerMin" to JsWire.num(snap.rechargePerMin),
             "capacity" to JsWire.num(snap.capacity),
@@ -168,6 +191,8 @@ internal object SettingsBridge {
             "hourRules" to hourRules(view.hourRules),
             "hideYtSidebar" to carried.hideYtSidebar,
             "showTimeLeft" to JsonPrimitive(snap.showTimeLeft),
+            "frictionCount" to JsWire.num(snap.frictionCount),
+            "trackedApps" to JsonArray(trackedApps.map { JsonPrimitive(it) }),
         )
 
     fun ingest(
@@ -183,6 +208,7 @@ internal object SettingsBridge {
             siteModes = enabled?.let { ownModes(it, localModes) },
             hourRules = (values["hourRules"] as? JsonArray)?.map { it.toRawRule() },
             showTimeLeft = values["showTimeLeft"]?.bool(),
+            frictionCount = values["frictionCount"]?.num()?.roundToInt(),
             // customSites and hideYtSidebar are the browser's business. Applying them here
             // would only mean writing them back out in this platform's spelling.
         )
@@ -193,6 +219,9 @@ internal object SettingsBridge {
                 hideYtSidebar = values["hideYtSidebar"] ?: carried.hideYtSidebar,
                 siteModes = enabled?.let { foreignModes(it) } ?: carried.siteModes,
             ),
+            trackedApps = (values["trackedApps"] as? JsonArray)?.let { arr ->
+                arr.mapNotNullTo(LinkedHashSet()) { it.str()?.takeIf { s -> s.isNotEmpty() } }
+            },
         )
     }
 
