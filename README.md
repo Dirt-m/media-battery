@@ -78,8 +78,10 @@ block screen no matter the charge. The gate on a blocked app or site buys five m
 on that one and adds no charge.
 
 Loosening anything in settings (a looser mode, a higher capacity, faster charging,
-removing or editing an hour rule) goes through the same gate, one question, no line
-on why.
+fewer questions, removing or editing an hour rule) goes through the same gate, the same
+number of questions, no line on why. How many questions a gate asks is a setting, one
+by default and the same on every device. A wrong answer keeps the same kind of question
+with new numbers, so trying again is never a draw for an easier one.
 
 ### Hours
 
@@ -89,7 +91,7 @@ on some of them, slow or stop the charging, or lower the capacity. Charging stop
 overnight banks nothing whether the device was awake or not: the math walks the rule
 windows across any gap it slept through.
 
-Adding a restrictive rule is free. Removing or editing one costs the question.
+Adding a restrictive rule is free. Removing or editing one costs the questions.
 
 ### Sync
 

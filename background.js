@@ -25,6 +25,11 @@ const COOLDOWN_SECONDS = 600; // 10 min
 // rule) lasts.
 const SITE_PASS_SECONDS = 300; // 5 min
 
+// How many questions a friction gate asks, a setting (`frictionCount`), flat for every
+// gate on every device: the block overlay and the settings page both read it.
+const FRICTION_COUNT_MIN = 1;
+const FRICTION_COUNT_MAX = 5;
+
 const DEFAULTS = {
   charge: 1800,           // start with a full battery (30 min) on first install
   rechargePerMin: 5,      // seconds recharged per real minute while away (2 h/day)
@@ -37,6 +42,9 @@ const DEFAULTS = {
   sitePasses: {},         // site id -> expiry ts of a five minute pass through a block
   hideYtSidebar: false,   // always strip the YouTube recommendations sidebar
   showTimeLeft: true,     // brief corner toast with the time left when a tracked page opens
+  frictionCount: 1,       // questions per friction gate (block overlay and settings)
+  trackedApps: [],        // the phone's tracked packages; a passenger here, carried so a
+                          // save from this browser cannot erase them from the profile
   depleted: false,
   depletedAt: null,       // timestamp the current depletion began; drives the cooldown
   depletionSeq: 0,        // counts dead periods; content scripts key the per video pass
@@ -105,6 +113,8 @@ async function load() {
   if (!Number.isFinite(Number(state.warnSeconds))) state.warnSeconds = DEFAULTS.warnSeconds;
   state.warnSeconds = clamp(state.warnSeconds, 0, 24 * 3600); // 0 is a valid off switch
   state.showTimeLeft = state.showTimeLeft !== false; // missing means the default, on
+  state.frictionCount = sanitizeFrictionCount(state.frictionCount);
+  state.trackedApps = sanitizeTrackedApps(state.trackedApps);
   state.charge = clamp(state.charge, 0, state.capacity);
   if (!state.deviceId) {
     state.deviceId = Array.from(crypto.getRandomValues(new Uint8Array(8)))
@@ -302,6 +312,7 @@ function snapshot() {
     rechargePaused: SBRules.chargeFactorAt(state.hourRules, nowD) === 0,
     hideYtSidebar: state.hideYtSidebar,
     showTimeLeft: state.showTimeLeft,
+    frictionCount: state.frictionCount,
     cooldownRemaining,          // seconds until the block lifts (0 when alive)
     depleted: state.depleted,   // sites are blocked
     depletedAt: state.depletedAt, // epoch of the current dead period (null when alive)
@@ -609,7 +620,9 @@ function settingsSnapshot() {
     enabledSites: JSON.stringify(state.enabledSites),
     hourRules: JSON.stringify(state.hourRules),
     hideYtSidebar: state.hideYtSidebar,
-    showTimeLeft: state.showTimeLeft
+    showTimeLeft: state.showTimeLeft,
+    frictionCount: state.frictionCount,
+    trackedApps: JSON.stringify(state.trackedApps)
   };
 }
 function changedSettingKeys(before) {
@@ -628,8 +641,22 @@ function applySettings(s) {
   if (Array.isArray(s.hourRules)) state.hourRules = SBRules.sanitizeRules(s.hourRules);
   if (s.hideYtSidebar != null) state.hideYtSidebar = !!s.hideYtSidebar;
   if (s.showTimeLeft != null) state.showTimeLeft = !!s.showTimeLeft;
+  if (s.frictionCount != null) state.frictionCount = sanitizeFrictionCount(s.frictionCount);
   // Banked charge can never exceed the (possibly lowered) capacity.
   state.charge = clamp(state.charge, 0, state.capacity);
+}
+
+// 1 to 5 whole questions; anything unreadable is the default one.
+function sanitizeFrictionCount(v) {
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) ? clamp(n, FRICTION_COUNT_MIN, FRICTION_COUNT_MAX) : DEFAULTS.frictionCount;
+}
+
+// The phone's tracked package list, carried verbatim apart from shape hygiene: an array
+// of non empty strings, nothing else. This browser never edits it.
+function sanitizeTrackedApps(v) {
+  if (!Array.isArray(v)) return [];
+  return v.filter((p) => typeof p === 'string' && p.length > 0 && p.length <= 256).slice(0, 500);
 }
 
 // A site entry is false (off), 'block', or true/missing (tracked); anything else from a
@@ -753,6 +780,8 @@ function applyRemoteSettings(values) {
   if (Array.isArray(values.hourRules)) state.hourRules = SBRules.sanitizeRules(values.hourRules);
   if (values.hideYtSidebar != null) state.hideYtSidebar = !!values.hideYtSidebar;
   if (values.showTimeLeft != null) state.showTimeLeft = !!values.showTimeLeft;
+  if (values.frictionCount != null) state.frictionCount = sanitizeFrictionCount(values.frictionCount);
+  if (Array.isArray(values.trackedApps)) state.trackedApps = sanitizeTrackedApps(values.trackedApps);
   if (Array.isArray(values.customSites)) {
     // Same host hygiene as the add path: a synced entry whose host doesn't normalize is
     // dropped, not registered.
@@ -812,7 +841,13 @@ const syncAdapter = {
     customSites: state.customSites,
     hourRules: state.hourRules,
     hideYtSidebar: state.hideYtSidebar,
-    showTimeLeft: state.showTimeLeft
+    showTimeLeft: state.showTimeLeft,
+    frictionCount: state.frictionCount,
+    // Only once a phone has spoken: an empty list invented here would sit at ts 0
+    // against a phone's unstamped picks, and a tie keeps local on both sides, so the
+    // two would overwrite each other forever. Received once, it is carried for good.
+    ...(state.trackedApps.length || (state.settingsMeta && 'trackedApps' in state.settingsMeta)
+      ? { trackedApps: state.trackedApps } : {})
   }),
   applyRemoteSettings,
   isEngaged,

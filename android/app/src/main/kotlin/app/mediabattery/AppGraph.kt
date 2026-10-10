@@ -82,6 +82,7 @@ class AppGraph(private val app: Application) {
         engine = engine,
         host = engineHost,
         store = syncStore,
+        tracked = tracked,
         clock = clock,
         initialServerOffset = loaded?.serverOffset ?: 0L,
     )
@@ -154,15 +155,26 @@ class AppGraph(private val app: Application) {
         // Reserve and passes are one off changes on a device that usually is not the
         // writer, so push them instead of waiting for a drain to start.
         engineHost.onChargeAction = { onSync { pushChargeSoon() } }
+        // A list picked before it synced has no timestamp, and the browser emits an empty
+        // one at zero too. A tie keeps local on both sides, so the two would overwrite each
+        // other forever; stamping the picks once settles it in this phone's favor.
+        if (tracked.packages.value.isNotEmpty() && TRACKED_KEY !in syncStore.record.value.settingsMeta) {
+            onSync { onSettingsChanged(TRACKED_KEY) }
+        }
     }
 
     /** Gauge back on screen: a follower catches up. */
     fun pullSyncSoon() = onSync { pullSoon() }
 
-    /** Track or untrack a package and let the running engagement re-evaluate at once. */
+    /**
+     * Track or untrack a package and let the running engagement re-evaluate at once. The
+     * list is a synced setting, so the change is stamped and pushed like a mode.
+     */
     fun setTracked(pkg: String, trackedNow: Boolean) {
+        val before = tracked.packages.value
         if (trackedNow) tracked.track(pkg) else tracked.untrack(pkg)
         engineHost.onTrackedChanged()
+        if (tracked.packages.value != before) onSync { onSettingsChanged(TRACKED_KEY) }
     }
 
     fun setMode(id: String, mode: SiteMode) = engineHost.setMode(id, mode)
@@ -172,5 +184,10 @@ class AppGraph(private val app: Application) {
     private fun loadSettings(): SettingsView {
         val state = loaded ?: return SettingsView()
         return SettingsView(siteModes = state.siteModes.toMap(), hourRules = state.hourRules)
+    }
+
+    private companion object {
+        /** The settings key the tracked package list travels under. */
+        const val TRACKED_KEY = "trackedApps"
     }
 }

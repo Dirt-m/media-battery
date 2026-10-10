@@ -108,6 +108,8 @@
     <string name="settings_warn_off">Off</string>
     <string name="settings_time_left">Time left on arrival</string>
     <string name="settings_time_left_why">A short notice with the time left when a tracked app opens.</string>
+    <string name="settings_questions">Questions</string>
+    <string name="settings_questions_why">Asked before a block lifts or a setting loosens.</string>
     <string name="settings_save">Save</string>
     <string name="settings_permissions">Permissions</string>
     <string name="settings_gate_title">Confirm the change</string>

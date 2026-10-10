@@ -57,6 +57,7 @@ data class BatteryState(
     var sitePasses: MutableMap<String, Long> = mutableMapOf(),
     var hideYtSidebar: Boolean = false,
     var showTimeLeft: Boolean = true,
+    var frictionCount: Int = Constants.DEFAULT_FRICTION_COUNT,
     var depleted: Boolean = false,
     var depletedAt: Long? = null,
     var depletionSeq: Int = 0,
@@ -94,6 +95,7 @@ data class BatteryState(
         rechargePerMin = clamp(rechargePerMin, Constants.RECHARGE_PER_MIN_MIN, Constants.RECHARGE_PER_MIN_MAX)
         // 0 turns the warning off, so the floor is 0 and not the default.
         warnSeconds = min(WARN_SECONDS_MAX, max(0, warnSeconds))
+        frictionCount = clampFrictionCount(frictionCount)
         charge = clamp(charge, 0.0, capacity)
         depletionSeq = max(0, depletionSeq)
         return this
@@ -105,5 +107,9 @@ data class BatteryState(
         /** The extension's clamp: a non finite value lands on the low bound. */
         fun clamp(v: Double, lo: Double, hi: Double): Double =
             if (!v.isFinite()) lo else min(hi, max(lo, v))
+
+        /** 1 to 5 whole questions, the extension's sanitizeFrictionCount. */
+        fun clampFrictionCount(n: Int): Int =
+            min(Constants.FRICTION_COUNT_MAX, max(Constants.FRICTION_COUNT_MIN, n))
     }
 }

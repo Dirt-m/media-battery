@@ -10,7 +10,8 @@ const PLATFORMS = globalThis.TRACKED_PLATFORMS || [];
 const fields = {
   regen: $('regen'),
   cap: $('cap'),
-  warn: $('warn')
+  warn: $('warn'),
+  questions: $('questions')
 };
 const saveBtn = $('save');
 const statusEl = $('status');
@@ -129,6 +130,7 @@ function applyValues() {
   fields.regen.value = Math.round((current.rechargePerMin / SEC_PER_MIN_PER_HOUR_DAY) * 10) / 10;
   fields.cap.value = Math.round(current.capacity / 60);
   fields.warn.value = Math.round((current.warnSeconds || 0) / 60);
+  fields.questions.value = current.frictionCount || 1;
   for (const id of Object.keys(siteSelects)) {
     siteSelects[id].value = siteMode(current.enabledSites, id);
   }
@@ -333,7 +335,8 @@ function collect() {
     enabledSites: collectSites(),
     hourRules: collectRules(),
     hideYtSidebar: ytSidebarBtn ? ytSidebarBtn.getAttribute('aria-pressed') === 'true' : !!current.hideYtSidebar,
-    showTimeLeft: entryToastBtn.getAttribute('aria-pressed') === 'true'
+    showTimeLeft: entryToastBtn.getAttribute('aria-pressed') === 'true',
+    frictionCount: Math.round(Number(fields.questions.value))
   };
 }
 
@@ -349,6 +352,7 @@ function dirty() {
   if (s.warnSeconds !== current.warnSeconds) return true;
   if (s.hideYtSidebar !== !!current.hideYtSidebar) return true;
   if (s.showTimeLeft !== (current.showTimeLeft !== false)) return true;
+  if (s.frictionCount !== (current.frictionCount || 1)) return true;
   if (JSON.stringify(s.hourRules) !== JSON.stringify(current.hourRules || [])) return true;
   for (const id of Object.keys(s.enabledSites)) {
     if (siteMode(current.enabledSites, id) !== collectedMode(s.enabledSites[id])) return true;
@@ -356,12 +360,14 @@ function dirty() {
   return false;
 }
 
-// Any change toward more usage: more daily charge, a bigger battery, a site dropping
-// to a looser mode, or an hour rule giving ground. These need the gate.
+// Any change toward more usage: more daily charge, a bigger battery, fewer questions
+// at the gate, a site dropping to a looser mode, or an hour rule giving ground. These
+// need the gate.
 function loosening() {
   const s = collect();
   if (s.rechargePerMin > current.rechargePerMin) return true;
   if (s.capacity > current.capacity) return true;
+  if (s.frictionCount < (current.frictionCount || 1)) return true;
   for (const id of Object.keys(s.enabledSites)) {
     if (MODE_RANK[collectedMode(s.enabledSites[id])] < MODE_RANK[siteMode(current.enabledSites, id)]) return true;
   }
@@ -429,6 +435,11 @@ saveBtn.addEventListener('click', () => {
     setStatus('Fill in charging speed, capacity, and the warning.', 'err');
     return;
   }
+  const questions = Number(fields.questions.value.trim());
+  if (!Number.isInteger(questions) || questions < 1 || questions > 5) {
+    setStatus('Questions is a whole number from 1 to 5.', 'err');
+    return;
+  }
   const rp = rulesProblem();
   if (rp) { setStatus(rp, 'err'); ruleStatus.textContent = rp; ruleStatus.className = 'status err'; return; }
   if (!dirty()) { setStatus('Nothing to save.', null); return; }
@@ -469,7 +480,7 @@ function openGate(opts) {
   activeGate = FrictionGate.mount(gateHost, {
     title: 'Confirm the change',
     message: opts.message,
-    count: 1, // changing a setting asks one question
+    count: current.frictionCount || 1, // the same flat toll as the block overlay
     confirmLabel: opts.confirmLabel,
     cancelLabel: 'Back',
     onCancel: closeGate,

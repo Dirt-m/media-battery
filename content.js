@@ -46,7 +46,8 @@
     passUntil: 0,            // performance.now() when this site's pass runs out
     hourRules: [],           // between-hours rules; evaluated here against this site
     rechargePaused: false,   // an open hour rule has charging stopped
-    hideYtSidebar: false     // always strip the YouTube sidebar (a setting)
+    hideYtSidebar: false,    // always strip the YouTube sidebar (a setting)
+    frictionCount: 1         // questions the gate asks (a setting)
   };
 
   // Hour rules and the settings mode re-evaluate on the 1s poll, so a window opening
@@ -106,6 +107,7 @@
     state.depleted = m.depleted;
     state.cooldownRemaining = m.cooldownRemaining || 0;
     state.hideYtSidebar = !!m.hideYtSidebar;
+    if (typeof m.frictionCount === 'number') state.frictionCount = m.frictionCount;
     if (typeof m.reserveSeconds === 'number') state.reserveSeconds = m.reserveSeconds;
     if (typeof m.passSeconds === 'number') state.passSeconds = m.passSeconds;
     // Passes arrive as seconds remaining; anchor them to this tab's clock.
@@ -635,7 +637,7 @@
       title: videoMode ? 'Just this video, I swear!' : `${plainLabel}, I swear!`,
       confirmLabel: videoMode ? 'Unblock this video' : plainLabel,
       cancelLabel: 'Back',
-      count: 1,
+      count: state.frictionCount,
       askWhy: true,
       whyMinWords: 5,
       large: true, // full screen lock: bigger, page-independent text

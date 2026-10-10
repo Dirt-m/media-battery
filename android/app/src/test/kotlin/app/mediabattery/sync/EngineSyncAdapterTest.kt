@@ -25,16 +25,49 @@ import site.dirt23.battery.core.sync.SettingsWire
 class EngineSyncAdapterTest {
 
     @Test
-    fun `the eight keys travel in the extension's shapes`() {
-        val out = SettingsBridge.emit(snapshot(), view(), passengers())
+    fun `the ten keys travel in the extension's shapes`() {
+        val out = SettingsBridge.emit(
+            snapshot(),
+            view(),
+            passengers(),
+            trackedApps = linkedSetOf("com.example.thing", "com.vinted"),
+        )
         assertEquals(
             """{"rechargePerMin":5,"capacity":1800,"warnSeconds":300,""" +
                 """"enabledSites":{"youtube":"block","instagram":false,"app:com.example.thing":"block","c123":"block"},""" +
                 """"customSites":[{"id":"c123","name":"News","host":"news.example"}],""" +
                 """"hourRules":[{"id":"r1","from":"9:00","to":"17:30","action":"block",""" +
-                """"scope":"only","sites":["youtube"]}],"hideYtSidebar":true,"showTimeLeft":false}""",
+                """"scope":"only","sites":["youtube"]}],"hideYtSidebar":true,"showTimeLeft":false,""" +
+                """"frictionCount":3,"trackedApps":["com.example.thing","com.vinted"]}""",
             JsonObject(out).toString(),
         )
+    }
+
+    @Test
+    fun `frictionCount is spoken here, rounded like the extension reads it`() {
+        val arrived = SettingsBridge.ingest(
+            mapOf("frictionCount" to obj("2.6")),
+            localModes = emptyMap(),
+            carried = Passengers(),
+        )
+        assertEquals(3, arrived.patch.frictionCount)
+        assertNull(arrived.trackedApps)
+    }
+
+    @Test
+    fun `trackedApps arrives as the whole list, junk entries dropped`() {
+        val arrived = SettingsBridge.ingest(
+            mapOf("trackedApps" to obj("""["com.vinted","",7,"com.instagram.android"]""")),
+            localModes = emptyMap(),
+            carried = Passengers(),
+        )
+        assertEquals(linkedSetOf("com.vinted", "com.instagram.android"), arrived.trackedApps)
+        // A wire that does not name the key leaves the list alone.
+        val silent = SettingsBridge.ingest(mapOf("capacity" to obj("1800")), emptyMap(), Passengers())
+        assertNull(silent.trackedApps)
+        // A wire that names it empty empties it: that is another device's untrack.
+        val cleared = SettingsBridge.ingest(mapOf("trackedApps" to obj("[]")), emptyMap(), Passengers())
+        assertEquals(emptySet<String>(), cleared.trackedApps)
     }
 
     @Test
@@ -200,6 +233,7 @@ class EngineSyncAdapterTest {
         rechargePerMin = 5.0,
         warnSeconds = 300,
         showTimeLeft = false,
+        frictionCount = 3,
         reserveSeconds = 300,
         passSeconds = 300,
         rechargePaused = false,

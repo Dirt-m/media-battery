@@ -41,6 +41,7 @@ import kotlin.math.roundToInt
 fun BlockScreen(
     decision: BlockDecision,
     minutes: Int,
+    questions: Int,
     gateOpen: Boolean,
     nameOf: (String) -> String = { it },
     onOpenGate: () -> Unit,
@@ -59,7 +60,7 @@ fun BlockScreen(
             FrictionGate(
                 title = stringResource(R.string.block_gate_title, minutes),
                 confirmLabel = stringResource(R.string.block_action, minutes),
-                count = 1,
+                count = questions,
                 askWhy = true,
                 onCancel = onGateCancel,
                 onSuccess = onGateSuccess,
