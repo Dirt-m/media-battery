@@ -77,8 +77,11 @@ Each one is on, off, or blocked: off never drains and never blocks, blocked show
 block screen no matter the charge. The gate on a blocked app or site buys five minutes
 on that one and adds no charge.
 
+The extension can also show tracked sites in grayscale, all of them or the ones you
+pick. It lifts on a site that is off and under the block screen.
+
 Loosening anything in settings (a looser mode, a higher capacity, faster charging,
-fewer questions, removing or editing an hour rule) goes through the same gate, the same
+fewer questions, giving a site its color back, removing or editing an hour rule) goes through the same gate, the same
 number of questions, no line on why. How many questions a gate asks is a setting, one
 by default and the same on every device. A wrong answer keeps the same kind of question
 with new numbers, so trying again is never a draw for an easier one.

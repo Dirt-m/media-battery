@@ -47,6 +47,7 @@
     hourRules: [],           // between-hours rules; evaluated here against this site
     rechargePaused: false,   // an open hour rule has charging stopped
     hideYtSidebar: false,    // always strip the YouTube sidebar (a setting)
+    gray: false,             // show this site without color (a setting)
     frictionCount: 1         // questions the gate asks (a setting)
   };
 
@@ -75,6 +76,7 @@
   let unblockedVideoId = null;
   let depletionEpoch = null;  // depletionSeq of the dead period the unblock belongs to
   let sidebarStyle = null;
+  let grayStyle = null;
 
   // The port to the background. An idled event page severs its ports and on an SPA the
   // next full navigation can be days away, so a dead port has to reconnect itself or
@@ -107,6 +109,8 @@
     state.depleted = m.depleted;
     state.cooldownRemaining = m.cooldownRemaining || 0;
     state.hideYtSidebar = !!m.hideYtSidebar;
+    const g = m.grayscale;
+    state.gray = !!g && (g.all === true || (Array.isArray(g.sites) && g.sites.includes(site)));
     if (typeof m.frictionCount === 'number') state.frictionCount = m.frictionCount;
     if (typeof m.reserveSeconds === 'number') state.reserveSeconds = m.reserveSeconds;
     if (typeof m.passSeconds === 'number') state.passSeconds = m.passSeconds;
@@ -538,7 +542,26 @@
     }
   }
 
+  // Grayscale: drain the color from the page while time on it counts. A page level
+  // style on the root element, which the filter spec exempts from becoming the
+  // containing block of fixed elements, so the site's layout holds. The fullscreen
+  // element paints in the top layer, outside the root's filter, hence its own rule.
+  // Lifted under the cover, which lives inside the page and would lose its red.
+  function applyGray() {
+    const on = state.gray && !shouldBlock() && !siteOff();
+    if (on && !(grayStyle && grayStyle.isConnected)) {
+      grayStyle = document.createElement('style');
+      grayStyle.id = 'sb-grayscale';
+      grayStyle.textContent = 'html, :fullscreen { filter: grayscale(1) !important; }';
+      (document.head || document.documentElement).appendChild(grayStyle);
+    } else if (!on && grayStyle) {
+      grayStyle.remove();
+      grayStyle = null;
+    }
+  }
+
   function applyOverlay() {
+    applyGray();
     const kind = blockKind();
     if (!kind) { removeOverlay(); return; }
     enforce();

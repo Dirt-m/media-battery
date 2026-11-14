@@ -30,10 +30,19 @@ entryToastBtn.addEventListener('click', () => {
   markDirty();
 });
 
+const grayAllBtn = $('grayAll');
+grayAllBtn.addEventListener('click', () => {
+  grayAllBtn.setAttribute('aria-pressed', grayAllBtn.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+  renderGray();
+  markDirty();
+});
+
 let current = null;
 let activeGate = null;
 let siteSelects = {};   // site id -> <select> (built-in and custom)
 let ytSidebarBtn = null;
+let grayBtns = {};      // site id -> its Gray toggle
+let graySites = new Set(); // working copy of the picked grayscale site ids
 let ruleDraft = [];     // working copy of the hour rules while editing
 
 // Recharge is stored as seconds/minute and shown as hours/day of charge. A day holds
@@ -91,7 +100,40 @@ function toggleRow(id, name, removable) {
   if (removable) {
     row.querySelector('[data-remove]').addEventListener('click', () => removeCustom(id));
   }
+  addGrayToggle(row, id);
   return row;
+}
+
+// Inline toggle on every site row for showing that site without color.
+function addGrayToggle(row, id) {
+  const ctl = row.querySelector('.row-ctl');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'mini-toggle';
+  btn.textContent = 'Gray';
+  btn.title = 'Show this site without color';
+  btn.setAttribute('aria-pressed', 'false');
+  btn.addEventListener('click', () => {
+    if (graySites.has(id)) graySites.delete(id); else graySites.add(id);
+    renderGray();
+    markDirty();
+  });
+  ctl.insertBefore(btn, ctl.firstChild);
+  grayBtns[id] = btn;
+}
+
+// While All sites is on every row reads gray and locks; the picks underneath keep.
+function renderGray() {
+  const all = grayAllBtn.getAttribute('aria-pressed') === 'true';
+  for (const id of Object.keys(grayBtns)) {
+    grayBtns[id].setAttribute('aria-pressed', all || graySites.has(id) ? 'true' : 'false');
+    grayBtns[id].disabled = all;
+  }
+}
+
+function currentGray() {
+  const g = (current && current.grayscale) || {};
+  return { all: g.all === true, sites: Array.isArray(g.sites) ? g.sites : [] };
 }
 
 // Inline toggle on the YouTube row for hiding the recommendations rail.
@@ -114,6 +156,7 @@ function addSidebarToggle(row) {
 
 function buildSiteRows() {
   siteSelects = {};
+  grayBtns = {};
   ytSidebarBtn = null;
   siteRows.innerHTML = '';
   for (const p of PLATFORMS) {
@@ -136,6 +179,10 @@ function applyValues() {
   }
   if (ytSidebarBtn) ytSidebarBtn.setAttribute('aria-pressed', current.hideYtSidebar ? 'true' : 'false');
   entryToastBtn.setAttribute('aria-pressed', current.showTimeLeft === false ? 'false' : 'true');
+  // Picked ids with no row here (another device's) stay in the set and ride a save.
+  graySites = new Set(currentGray().sites);
+  grayAllBtn.setAttribute('aria-pressed', currentGray().all ? 'true' : 'false');
+  renderGray();
 }
 
 async function refresh() {
@@ -336,6 +383,7 @@ function collect() {
     hourRules: collectRules(),
     hideYtSidebar: ytSidebarBtn ? ytSidebarBtn.getAttribute('aria-pressed') === 'true' : !!current.hideYtSidebar,
     showTimeLeft: entryToastBtn.getAttribute('aria-pressed') === 'true',
+    grayscale: { all: grayAllBtn.getAttribute('aria-pressed') === 'true', sites: [...graySites].sort() },
     frictionCount: Math.round(Number(fields.questions.value))
   };
 }
@@ -353,6 +401,7 @@ function dirty() {
   if (s.hideYtSidebar !== !!current.hideYtSidebar) return true;
   if (s.showTimeLeft !== (current.showTimeLeft !== false)) return true;
   if (s.frictionCount !== (current.frictionCount || 1)) return true;
+  if (JSON.stringify(s.grayscale) !== JSON.stringify(currentGray())) return true;
   if (JSON.stringify(s.hourRules) !== JSON.stringify(current.hourRules || [])) return true;
   for (const id of Object.keys(s.enabledSites)) {
     if (siteMode(current.enabledSites, id) !== collectedMode(s.enabledSites[id])) return true;
@@ -361,8 +410,8 @@ function dirty() {
 }
 
 // Any change toward more usage: more daily charge, a bigger battery, fewer questions
-// at the gate, a site dropping to a looser mode, or an hour rule giving ground. These
-// need the gate.
+// at the gate, a site dropping to a looser mode, a site getting its color back, or an
+// hour rule giving ground. These need the gate.
 function loosening() {
   const s = collect();
   if (s.rechargePerMin > current.rechargePerMin) return true;
@@ -370,6 +419,10 @@ function loosening() {
   if (s.frictionCount < (current.frictionCount || 1)) return true;
   for (const id of Object.keys(s.enabledSites)) {
     if (MODE_RANK[collectedMode(s.enabledSites[id])] < MODE_RANK[siteMode(current.enabledSites, id)]) return true;
+  }
+  const g = currentGray();
+  for (const id of Object.keys(grayBtns)) {
+    if ((g.all || g.sites.includes(id)) && !(s.grayscale.all || s.grayscale.sites.includes(id))) return true;
   }
   if (rulesLoosening(current.hourRules || [], s.hourRules)) return true;
   return false;
