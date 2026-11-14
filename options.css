@@ -144,6 +144,7 @@ body {
   transition: color .12s ease, border-color .12s ease, background .12s ease;
 }
 .mini-toggle:hover { color: var(--ink); border-color: #3a4450; }
+.mini-toggle:disabled { opacity: 0.55; cursor: default; }
 .mini-toggle[aria-pressed="true"] {
   background: rgba(47, 164, 90, 0.16);
   border-color: var(--accent);

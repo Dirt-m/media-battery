@@ -434,6 +434,28 @@ test('frictionCount is 1 to 5 whole questions, locally and from a sync', () => {
   assert.ok('frictionCount' in B.syncAdapter.getSettings());
 });
 
+test('grayscale is one switch plus picked site ids, stored in one canonical shape', () => {
+  reset();
+  assert.deepEqual(B.getState().grayscale, { all: false, sites: [] });
+  const before = B.settingsSnapshot();
+  B.applySettings({ grayscale: { all: 1, sites: ['youtube', 7, '', 'reddit', 'youtube', 'app:com.vinted'] } });
+  // all must be a real true; ids are deduped, sorted, and carried unchecked.
+  assert.deepEqual(B.getState().grayscale, { all: false, sites: ['app:com.vinted', 'reddit', 'youtube'] });
+  assert.deepEqual(B.changedSettingKeys(before), ['grayscale']);
+  // The same picks in another order change nothing, so the key is not restamped.
+  const same = B.settingsSnapshot();
+  B.applySettings({ grayscale: { all: false, sites: ['youtube', 'app:com.vinted', 'reddit'] } });
+  assert.deepEqual(B.changedSettingKeys(same), []);
+  // A junk shape leaves the setting alone; a save without the key does too.
+  B.applyRemoteSettings({ grayscale: 'yes' });
+  B.applySettings({ capacity: 1200 });
+  assert.equal(B.getState().grayscale.sites.length, 3);
+  B.applyRemoteSettings({ grayscale: { all: true } });
+  assert.deepEqual(B.getState().grayscale, { all: true, sites: [] });
+  assert.deepEqual(B.snapshot().grayscale, { all: true, sites: [] });
+  assert.deepEqual(B.syncAdapter.getSettings().grayscale, { all: true, sites: [] });
+});
+
 test('the phone\'s trackedApps ride along: stored from a sync, re-emitted, never invented', () => {
   reset();
   assert.ok(!('trackedApps' in B.syncAdapter.getSettings()));

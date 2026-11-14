@@ -42,6 +42,8 @@ const DEFAULTS = {
   sitePasses: {},         // site id -> expiry ts of a five minute pass through a block
   hideYtSidebar: false,   // always strip the YouTube recommendations sidebar
   showTimeLeft: true,     // brief corner toast with the time left when a tracked page opens
+  grayscale: { all: false, sites: [] }, // show tracked sites without color: all of
+                          // them, or the picked site ids
   frictionCount: 1,       // questions per friction gate (block overlay and settings)
   trackedApps: [],        // the phone's tracked packages; a passenger here, carried so a
                           // save from this browser cannot erase them from the profile
@@ -114,6 +116,7 @@ async function load() {
   state.warnSeconds = clamp(state.warnSeconds, 0, 24 * 3600); // 0 is a valid off switch
   state.showTimeLeft = state.showTimeLeft !== false; // missing means the default, on
   state.frictionCount = sanitizeFrictionCount(state.frictionCount);
+  state.grayscale = sanitizeGrayscale(stored.grayscale);
   state.trackedApps = sanitizeTrackedApps(state.trackedApps);
   state.charge = clamp(state.charge, 0, state.capacity);
   if (!state.deviceId) {
@@ -312,6 +315,7 @@ function snapshot() {
     rechargePaused: SBRules.chargeFactorAt(state.hourRules, nowD) === 0,
     hideYtSidebar: state.hideYtSidebar,
     showTimeLeft: state.showTimeLeft,
+    grayscale: state.grayscale,
     frictionCount: state.frictionCount,
     cooldownRemaining,          // seconds until the block lifts (0 when alive)
     depleted: state.depleted,   // sites are blocked
@@ -622,6 +626,7 @@ function settingsSnapshot() {
     hideYtSidebar: state.hideYtSidebar,
     showTimeLeft: state.showTimeLeft,
     frictionCount: state.frictionCount,
+    grayscale: JSON.stringify(state.grayscale),
     trackedApps: JSON.stringify(state.trackedApps)
   };
 }
@@ -642,6 +647,7 @@ function applySettings(s) {
   if (s.hideYtSidebar != null) state.hideYtSidebar = !!s.hideYtSidebar;
   if (s.showTimeLeft != null) state.showTimeLeft = !!s.showTimeLeft;
   if (s.frictionCount != null) state.frictionCount = sanitizeFrictionCount(s.frictionCount);
+  if (s.grayscale && typeof s.grayscale === 'object') state.grayscale = sanitizeGrayscale(s.grayscale);
   // Banked charge can never exceed the (possibly lowered) capacity.
   state.charge = clamp(state.charge, 0, state.capacity);
 }
@@ -650,6 +656,19 @@ function applySettings(s) {
 function sanitizeFrictionCount(v) {
   const n = Math.round(Number(v));
   return Number.isFinite(n) ? clamp(n, FRICTION_COUNT_MIN, FRICTION_COUNT_MAX) : DEFAULTS.frictionCount;
+}
+
+// Grayscale is one switch for every tracked site plus a list of picked site ids. The
+// ids are sorted and deduped so the same picks always store as the same bytes, and a
+// save that changes nothing cannot restamp the key. Ids are carried, never platform
+// checked, like the site modes.
+function sanitizeGrayscale(v) {
+  const o = (v && typeof v === 'object') ? v : {};
+  const sites = Array.isArray(o.sites)
+    ? [...new Set(o.sites.filter((s) => typeof s === 'string' && s.length > 0 && s.length <= 256))]
+      .sort().slice(0, 500)
+    : [];
+  return { all: o.all === true, sites };
 }
 
 // The phone's tracked package list, carried verbatim apart from shape hygiene: an array
@@ -781,6 +800,7 @@ function applyRemoteSettings(values) {
   if (values.hideYtSidebar != null) state.hideYtSidebar = !!values.hideYtSidebar;
   if (values.showTimeLeft != null) state.showTimeLeft = !!values.showTimeLeft;
   if (values.frictionCount != null) state.frictionCount = sanitizeFrictionCount(values.frictionCount);
+  if (values.grayscale && typeof values.grayscale === 'object') state.grayscale = sanitizeGrayscale(values.grayscale);
   if (Array.isArray(values.trackedApps)) state.trackedApps = sanitizeTrackedApps(values.trackedApps);
   if (Array.isArray(values.customSites)) {
     // Same host hygiene as the add path: a synced entry whose host doesn't normalize is
@@ -843,6 +863,7 @@ const syncAdapter = {
     hideYtSidebar: state.hideYtSidebar,
     showTimeLeft: state.showTimeLeft,
     frictionCount: state.frictionCount,
+    grayscale: state.grayscale,
     // Only once a phone has spoken: an empty list invented here would sit at ts 0
     // against a phone's unstamped picks, and a tie keeps local on both sides, so the
     // two would overwrite each other forever. Received once, it is carried for good.
@@ -988,7 +1009,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ready, load, recompute, settle, snapshot,
     isEngaged, isDraining, isCooling,
     maybeAdoptAnchor, applySettings, applyRemoteSettings, applyServerOffset,
-    settingsSnapshot, changedSettingKeys,
+    settingsSnapshot, changedSettingKeys, sanitizeGrayscale,
     normalizeHost, syncCustomScripts, syncAdapter, siteUsable, refreshAccess,
     getState: () => state,
     setState: (partial) => Object.assign(state, partial),
